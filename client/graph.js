@@ -94,13 +94,9 @@ function mySpread() {
     var instanceData = InstanceData.findOne();
 
     if (instanceData) {
-        var totalSeeds = instanceData.experiment.seedsRequired;
-        var seedsChosen = instanceData.experiment.seedsChosen;
-
-        return totalSeeds - seedsChosen;
+        return cy.nodes('[selectedBy="' + Meteor.user()._id + '"]').size();
     }
-
-    return cy.nodes('[selectedBy="'+Meteor.user()+'"]').size();
+    return 0;
 }
 
 Template.experiment.helpers({
