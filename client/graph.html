@@ -1,0 +1,17 @@
+<!--<template name="experiment">-->
+<template name="experiment">
+    <style>
+        #cy {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    </style>
+    <h1>Turn: {{whose_turn}},  Spread: {{spread}}</h1>
+    {{#if seeds_remaining}}
+        <h2>Seeds Remaining: {{seeds_remaining}}</h2>
+    {{else}}
+        <button id="exitSurvey">I'm Done</button>
+    {{/if}}
+    <div id="cy"></div>
+</template>

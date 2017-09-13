@@ -1,0 +1,23 @@
+{
+  "turkserver": {
+    "adminPassword": "turkserveradminpass",
+    "experiment": {
+      "limit": {
+        "batch": "10"
+      }
+    },
+    "mturk": {
+      "sandbox": true,
+      "accessKeyId": "",
+      "secretAccessKey": "",
+      "externalUrl": "https://wherethiswillbehosted.com",
+      "frameHeight": "900"
+    }
+  },
+  "public": {
+    "turkserver": {
+      "dataRoute": "expAdmin",
+      "autoLobby": false
+    }
+  }
+}
