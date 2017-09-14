@@ -17,8 +17,12 @@ Meteor.startup(() => {
 
         //get the users participating in this experiment
         var users = this.instance.users();
+
         var userColors = {};
-        userColors[users[0]] = "#FF4444";
+        for(var i=0; i<users.length; i++) {
+            var color = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
+            userColors[users[i]] = color;
+        }
 
         if (users.length < 2) {
             var computer_id = "COMPUTER";

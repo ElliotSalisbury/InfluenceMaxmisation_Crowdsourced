@@ -1,0 +1,109 @@
+<template name="lobby">
+    <div class="container">
+        <div class="row">
+            <h1>LOBBY</h1>
+            {{> accept_qualifications }}
+            {{> common_instructions EXPANDED="in" }}
+            <!--<button class="btn btn-warning" id="lobbyready">I have read the tutorial</button>-->
+            <div aria-live="polite">
+                {{> Template.dynamic template = ready_template }}
+            </div>
+        </div>
+    </div>
+</template>
+
+<template name="accept_qualifications">
+    <h3>To accept this HIT, you must be able to do the following:</h3>
+    <ul>
+        <li>
+            This HIT requires you to <strong>accept desktop notifications</strong>. These notifications alert you when a new message is received.
+            When you push the button below, your browser will ask you if you want to show notifications from this site. You must chose allow to continue with the HIT.
+            <button id="desktopnotifications" type="button" class="btn btn-primary btn-lg center-block">Click to Request Notifications</button>
+        </li>
+
+        <li>This HIT will take approximately <strong>10 minutes.</strong></li>
+        <li><strong>Be prepared to work on this HIT immediately</strong> since you will be talking with another worker.</li>
+        <li>Do NOT leave this tab open for later, do NOT open multiple tabs, you may only participate in one of these HITs at a time</li>
+    </ul>
+</template>
+
+<template name="lobby_notready">
+    <button class="btn btn-primary" id="lobbyready" disabled>I have read the tutorial (you must accept notifications first)</button>
+</template>
+
+<template name="lobby_ready">
+    <div id="lobbyjumbo" class="jumbotron">
+        <h3>Waiting for enough users to start the task. Sit tight for a few minutes!</h3>
+
+        <p>There are {{count}} user(s) currently waiting:</p>
+    </div>
+</template>
+
+<template name="common_instructions">
+    <div class="panel-group">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a class="accordion-toggle" data-toggle="collapse" href="#collapse1"><strong>Instructions:</strong> Click to Expand</a>
+                </h4>
+            </div>
+            <div id="collapse1" class="panel-collapse collapse {{EXPANDED}}">
+                <div class="panel-body">
+                    <p>
+                        We are running a study to understand how to generate high quality image captions for blind Twitter users.<br>
+                        The number of images on Twitter is increasing, and the tweet text does not always explain the image.
+                        Understandably, this is becoming an accessibility issue.
+                    </p>
+                    <p>
+                        We wish to investigate what questions blind users would have about an image, given the context of the tweet's text, and a best guess from an automated image captioning algorithm.
+                        The automated image captioning algorithm <strong>often makes mistakes</strong>.
+                    </p>
+
+                    Once you have finished reading these instructions:
+                    <ul>
+                        <li>You will be paired with another worker, and you will be randomly assigned the role of either a <strong>blind user</strong>, or a <strong>sighted assistant.</strong></li>
+                        <li>You will both be shown the same tweet, and the blind user is trying to understand the tweeter's intent, but <strong>cannot see the image</strong> associated with the tweet.</li>
+                        <li>In order to understand the tweet, the blind user must <strong>ask questions</strong> to the sighted assistant.</li>
+                        <li>You will be <strong>bonused</strong> based on the quality of your conversation and the quality of blind user's updated caption.</li>
+                    </ul>
+
+                    <h4>Contact Details:</h4>
+                    <p>If you have any problems or suggestions, do not hesitate to contact us at: <a href="mailto:blindtweettalk@gmail.com">blindtweettalk@gmail.com</a></p>
+
+
+                    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                        <div class="panel panel-default">
+                            <div class="panel-heading" role="tab" id="headingOne">
+                                <h4 class="panel-title">
+                                    <a class="accordion-toggle collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                        Example Blind User Interface
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                                <div class="panel-body">
+                                    <img class="img-responsive" src="/img/blind_tutorial.png">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading" role="tab" id="headingTwo">
+                                <h4 class="panel-title">
+                                    <a class="accordion-toggle collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                        Example Sighted Assistant Interface:
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                                <div class="panel-body">
+                                    <img class="img-responsive" src="/img/sighted_tutorial.png">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--<div class="panel-footer">Panel Footer</div>-->
+            </div>
+        </div>
+    </div>
+</template>
