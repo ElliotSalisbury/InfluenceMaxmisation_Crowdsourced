@@ -1,4 +1,5 @@
-var cytoscape = require('cytoscape');
+// var cytoscape = require('cytoscape');
+var InfMax = require("./infmax/infmax");
 
 Meteor.methods({
     goToExitSurvey: function() {
@@ -56,19 +57,10 @@ Meteor.methods({
         var usersTurn = instanceData.experiment.turnOrder[turnIndex];
 
         if (usersTurn === "COMPUTER") {
-            var graphElementsData = instanceData.graphElementsData;
-            var chooseFrom = [];
-            for(var i=0; i<graphElementsData.length; i++) {
-                if (graphElementsData[i].group==="nodes" && !graphElementsData[i].data.selectedBy) {
-                    chooseFrom.push(i);
-                }
-            }
+            var graph = InfMax.dataToGraph(instanceData.graphElementsData);
+            var chosenId = InfMax.imm_algs.highestDegree(graph);
 
-            if (chooseFrom.length > 0) {
-                var randomId = Math.floor(Math.random() * chooseFrom.length);
-                var id = graphElementsData[chooseFrom[randomId]].data.id;
-                Meteor.call("progressTurn", id);
-            }
+            Meteor.call("progressTurn", chosenId);
         }
     },
 
@@ -77,35 +69,12 @@ Meteor.methods({
 
         //check if we need to run the spread algorithm
         if(instanceData.experiment.seedsChosen === instanceData.experiment.seedsRequired) {
-            var cy = cytoscape({
-                elements: instanceData.graphElementsData
-            });
+            var graph = InfMax.dataToGraph(instanceData.graphElementsData);
 
-            var infected = cy.nodes("[selectedBy]").toArray();
-            while (infected.length > 0) {
-                var node = infected.shift();
-                var selectedBy = node.data("selectedBy");
+            var spread = new InfMax.spread.IndependentCascadeModel(graph);
+            spread.spread();
 
-                var edges = node.outgoers("edge");
-                edges.forEach(function(edge, i, eles) {
-                    var weight = edge.data("weight");
-                    var target = edge.target();
-
-                    if (!target.data("selectedBy") && Math.random() < weight) {
-                        target.data("selectedBy", selectedBy);
-                        infected.push(target);
-                    }
-                });
-            }
-
-            var graphData = [];
-            cy.elements().jsons().forEach(function(ele, i, eles){
-                graphData.push({
-                    group:ele.group,
-                    data: ele.data
-                });
-            });
-
+            var graphData = InfMax.graphToData(graph);
             InstanceData.upsert({_id: instanceData._id},
                 {
                     $set: {"graphElementsData":graphData}

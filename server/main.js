@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { InfMax } from './infmax/generators';
+var InfMax = require("./infmax/infmax");
 
 Meteor.startup(() => {
     Batches.upsert({ name: "main" }, { name: "main", active: true });
@@ -13,13 +13,7 @@ Meteor.startup(() => {
         var graph = gen.generate();
 
         //from the cy graph, we only want to store the important data (not the positions and stuff)
-        var graphData = [];
-        graph.elements().jsons().forEach(function(ele, i, eles){
-            graphData.push({
-                group:ele.group,
-                data: ele.data
-            });
-        });
+        var graphData = InfMax.graphToData(graph);
 
         //get the users participating in this experiment
         var users = this.instance.users();
@@ -31,9 +25,6 @@ Meteor.startup(() => {
             users.push(computer_id);
             userColors[computer_id] = "#596c7a";
         }
-
-        //get the colors for each user
-
 
         //the number of seeds to infect
         var seedsRequired = 4;

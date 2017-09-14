@@ -1,10 +1,24 @@
 var cytoscape = require('cytoscape');
 
-export var InfMax = InfMax || {};
-InfMax.spread = InfMax.spread = {};
+export var IndependentCascadeModel = function(graph) {
+    this.graph = graph;
 
-InfMax.spread.IndependentCascadeModel = {
-    spread: function (graphData) {
+    this.spread = function () {
+        var infected = this.graph.nodes("[selectedBy]").toArray();
+        while (infected.length > 0) {
+            var node = infected.shift();
+            var selectedBy = node.data("selectedBy");
 
-    }
+            var edges = node.outgoers("edge");
+            edges.forEach(function(edge, i, eles) {
+                var weight = edge.data("weight");
+                var target = edge.target();
+
+                if (!target.data("selectedBy") && Math.random() < weight) {
+                    target.data("selectedBy", selectedBy);
+                    infected.push(target);
+                }
+            });
+        }
+    };
 };

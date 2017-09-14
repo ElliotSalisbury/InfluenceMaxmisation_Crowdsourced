@@ -1,9 +1,6 @@
 var cytoscape = require('cytoscape');
 
-export var InfMax = InfMax || {};
-InfMax.generators = InfMax.generators = {};
-
-InfMax.generators.BarabasiAlbertGenerator = function(initialSize, size, stepSize, lower, upper){
+export var BarabasiAlbertGenerator = function(initialSize, size, stepSize, lower, upper){
     this.initialSize = initialSize;
     this.size = size;
     this.stepSize = stepSize;
@@ -12,7 +9,6 @@ InfMax.generators.BarabasiAlbertGenerator = function(initialSize, size, stepSize
 
     this.generate = function() {
         var cy = cytoscape({ });
-
 
         //create the nodes in the graph
         for (var i = 0; i < this.size; i++) {
