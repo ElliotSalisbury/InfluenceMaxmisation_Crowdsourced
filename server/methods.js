@@ -45,8 +45,39 @@ Meteor.methods({
                 $set: dbUpdateObj
             });
 
+        if(selectedId) {
+            instanceData = InstanceData.findOne();
+            let graph = InfMax.dataToGraph(instanceData.graphElementsData);
+
+            let epidemicModel = new InfMax.spread.IndependentCascadeModel(graph);
+            let infected = graph.nodes("[selectedBy]").toArray();
+            epidemicModel.setInfectedNodes(infected);
+
+            let selectedNode = graph.$id(selectedId);
+            epidemicModel.infectNode(selectedNode);
+
+            let done = false;
+            while (!done) {
+                let newNodes = epidemicModel.runStep();
+                if (newNodes.length === 0) {
+                    done = true;
+                }
+
+                for(let i=0; i<newNodes.length; i++) {
+                    newNodes[i].data("selectedBy", currentUser);
+                }
+
+                let graphData = InfMax.graphToData(graph);
+                InstanceData.upsert({_id: instanceData._id},
+                    {
+                        $set: {"graphElementsData":graphData}
+                    });
+            }
+        }
+
+
         Meteor.call("checkComputersTurn");
-        Meteor.call("runSpread");
+        // Meteor.call("runSpread");
     },
 
     checkComputersTurn: function() {
@@ -69,12 +100,22 @@ Meteor.methods({
 
         //check if we need to run the spread algorithm
         if(instanceData.experiment.seedsChosen === instanceData.experiment.seedsRequired) {
-            var graph = InfMax.dataToGraph(instanceData.graphElementsData);
+            let graph = InfMax.dataToGraph(instanceData.graphElementsData);
 
-            var spread = new InfMax.spread.IndependentCascadeModel(graph);
-            spread.spread();
+            let infected = graph.nodes("[selectedBy]").toArray();
 
-            var graphData = InfMax.graphToData(graph);
+            let epidemicModel = new InfMax.spread.IndependentCascadeModel(graph);
+            epidemicModel.infectNodes(infected);
+
+            let done = false;
+            while (!done) {
+                let newNodes = epidemicModel.runStep();
+                if (newNodes.length === 0) {
+                    done = true;
+                }
+            }
+
+            let graphData = InfMax.graphToData(graph);
             InstanceData.upsert({_id: instanceData._id},
                 {
                     $set: {"graphElementsData":graphData}
