@@ -25,7 +25,7 @@ Meteor.methods({
             var graphElementsData = instanceData.graphElementsData;
             for(var i=0; i<graphElementsData.length; i++) {
                 var id = graphElementsData[i].data.id;
-                if(id === selectedId && !graphElementsData[i].data.selected) {
+                if(id === selectedId && !graphElementsData[i].data.selectedBy) {
                     graphElementsData[i].data.selectedBy = currentUser;
 
                     dbUpdateObj["graphElementsData"] = graphElementsData;
@@ -80,5 +80,10 @@ Meteor.methods({
                     $set: {"graphElementsData":graphData}
                 });
         }
+
+        //TODO: add the bonus payment based on spread
+        // var assts = TurkServer.Instance.users();
+        // var asst = TurkServer.Assignment.currentAssignment();
+        // asst.addPayment(0.1);
     },
 });

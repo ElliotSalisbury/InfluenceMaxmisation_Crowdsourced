@@ -11,10 +11,16 @@ export function dataToGraph(data) {
 }
 export function graphToData(graph) {
     var graphData = [];
-    graph.elements().jsons().forEach(function(ele, i, eles){
+    graph.nodes().jsons().forEach(function(ele, i, eles){
         graphData.push({
             group:ele.group,
-            data: ele.data
+            data: ele.data,
+        });
+    });
+    graph.edges().jsons().forEach(function(ele, i, eles){
+        graphData.push({
+            group:ele.group,
+            data: ele.data,
         });
     });
     return graphData;
