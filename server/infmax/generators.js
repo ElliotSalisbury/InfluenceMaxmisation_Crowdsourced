@@ -1,14 +1,14 @@
 var cytoscape = require('cytoscape');
 
-export var BarabasiAlbertGenerator = function(initialSize, size, stepSize, lower, upper){
-    this.initialSize = initialSize;
-    this.size = size;
-    this.stepSize = stepSize;
-    this.lower = lower;
-    this.upper = upper;
+class AbstractGenerator {
+    constructor(size, lower, upper) {
+        this.size = size;
+        this.lower = lower;
+        this.upper = upper;
+    }
 
-    this.generate = function() {
-        var cy = cytoscape({ });
+    createInitialGraph() {
+        let cy = cytoscape({});
 
         //create the nodes in the graph
         for (var i = 0; i < this.size; i++) {
@@ -17,6 +17,50 @@ export var BarabasiAlbertGenerator = function(initialSize, size, stepSize, lower
                 data: {id: "n"+i}
             });
         }
+
+        return cy;
+    }
+
+    //uniform weight between the upper and lower bounds
+    getWeight() {
+        return (Math.random() * (this.upper-this.lower)) + this.lower;
+    };
+
+    //we're not building a directed graph, so add both edges
+    addInOutNeightbour(cy, source, target, weight) {
+        //add edges between these nodes in both directions
+        cy.add([
+            {
+                group: "edges",
+                data: {
+                    id: "e" + source.id() + "_" + target.id(),
+                    source: source.id(),
+                    target: target.id(),
+                    weight: weight
+                }
+            },
+            {
+                group: "edges",
+                data: {
+                    id: "e" + target.id() + "_" + source.id(),
+                    source: target.id(),
+                    target: source.id(),
+                    weight: weight
+                }
+            }
+        ]);
+    };
+}
+
+export class BarabasiAlbertGenerator extends AbstractGenerator {
+    constructor(initialSize, size, stepSize, lower, upper) {
+        super(size, lower, upper);
+        this.initialSize = initialSize;
+        this.stepSize = stepSize;
+    }
+
+    generate() {
+        var cy = this.createInitialGraph();
 
         //link up the initial nodes
         for (var i = 0; i < this.initialSize; i++) {
@@ -68,34 +112,30 @@ export var BarabasiAlbertGenerator = function(initialSize, size, stepSize, lower
 
         return cy;
     };
+}
 
-    //uniform weight between the upper and lower bounds
-    this.getWeight = function() {
-        return (Math.random() * (this.upper-this.lower)) + this.lower;
-    };
+export class ErdosRenyiGenerator extends AbstractGenerator {
+    constructor(size, probability, lower, upper) {
+        super(size, lower, upper);
+        this.probability = probability;
+    }
 
-    //we're not building a directed graph, so add both edges
-    this.addInOutNeightbour = function(cy, source, target, weight) {
-        //add edges between these nodes in both directions
-        cy.add([
-            {
-                group: "edges",
-                data: {
-                    id: "e" + source.id() + "_" + target.id(),
-                    source: source.id(),
-                    target: target.id(),
-                    weight: weight
-                }
-            },
-            {
-                group: "edges",
-                data: {
-                    id: "e" + target.id() + "_" + source.id(),
-                    source: target.id(),
-                    target: source.id(),
-                    weight: weight
+    generate() {
+        let cy = this.createInitialGraph();
+
+        //create the links
+        for (let a = 0; a < this.size; a++) {
+            let sNode = cy.$id("n"+a);
+
+            for (let b = a + 1; b < this.size; b++) {
+                if (Math.random() <= this.probability) {
+                    let tNode = cy.$id("n"+b);
+                    let weight = this.getWeight();
+                    this.addInOutNeightbour(cy, sNode, tNode, weight);
                 }
             }
-        ]);
+        }
+
+        return cy;
     };
-};
+}

@@ -1,6 +1,11 @@
-var cytoscape = require('cytoscape');
+let cytoscape = require('cytoscape');
+let bilkent = require('cytoscape-cose-bilkent');
+cytoscape.use( bilkent );
 
 Template.experiment.onRendered(function() {
+    var dotted_thresh = 0.2;
+    var thick_thresh = 0.3;
+
     //initialize the graph
     cy = cytoscape({
         container: document.getElementById('cy'),
@@ -21,8 +26,15 @@ Template.experiment.onRendered(function() {
             {
                 selector: 'edge',
                 style: {
-                    'width': function( ele ){return 2+((ele.data('weight')-0.5)/(0.8-0.5))*5; },
-                    'line-color': '#eca41a'
+                    'width': function( ele ){
+                            if (ele.data('weight') < thick_thresh) {
+                                return 2;
+                            } else {
+                                return 6;
+                            }
+                        },
+                    'line-color': '#eca41a',
+                    'line-style': function( ele ){return ele.data('weight') < dotted_thresh ? 'dashed' : 'solid'; },
                 }
             }
         ],
@@ -47,8 +59,13 @@ Tracker.autorun(function() {
         if (numElesStart != numElesEnd) {
 
             cy.layout({
-                name:"cose",
-                animate: false
+                name:"cose-bilkent",
+                animate: false,
+                nodeRepulsion: 8000,
+                nestingFactor: 0.001,
+                gravity: 0.0,
+                edgeElasticity: 0.05,
+                randomize: true,
             }).run();
 
             //when we click on a node, we are infecting it
@@ -62,7 +79,7 @@ function nodeOnClick(e) {
     console.log("clicked");
     var node = e.target;
 
-    if (isMyTurn() && seedsRemaining()) {
+    if (isMyTurn() && seedsRemaining() && !node.data("selectedBy")) {
         Meteor.call("progressTurn", node.id());
     }
 }
@@ -90,13 +107,8 @@ function seedsRemaining() {
     return 0;
 }
 
-function mySpread() {
-    var instanceData = InstanceData.findOne();
-
-    if (instanceData) {
-        return cy.nodes('[selectedBy="' + Meteor.user()._id + '"]').size();
-    }
-    return 0;
+function spread(userId) {
+    return cy.nodes('[selectedBy="' + userId + '"]').size();
 }
 
 Template.experiment.helpers({
@@ -115,9 +127,6 @@ Template.experiment.helpers({
     },
     seeds_remaining:function() {
         return seedsRemaining();
-    },
-    spread:function() {
-        return mySpread();
     }
 });
 
@@ -125,5 +134,20 @@ Template.experiment.events({
     'click button#exitSurvey': function () {
         // go to the exit survey
         Meteor.call('goToExitSurvey');
+    }
+});
+
+Template.scoreboard.helpers({
+    scoreboard:function() {
+        var instanceData = InstanceData.findOne();
+
+        if (!instanceData) return [];
+
+        var scoreboard = [];
+        for (var i in instanceData.experiment.turnOrder) {
+            var userId = instanceData.experiment.turnOrder[i];
+            scoreboard.push({id:userId, spread:spread(userId)});
+        }
+        return scoreboard;
     }
 });
