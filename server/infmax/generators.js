@@ -21,6 +21,14 @@ class AbstractGenerator {
         return cy;
     }
 
+    addNode(cy) {
+        let i = cy.nodes().size();
+        return cy.add({
+            group:"nodes",
+            data: {id: "n"+i}
+        });
+    }
+
     //uniform weight between the upper and lower bounds
     getWeight() {
         return (Math.random() * (this.upper-this.lower)) + this.lower;
@@ -138,4 +146,65 @@ export class ErdosRenyiGenerator extends AbstractGenerator {
 
         return cy;
     };
+}
+
+export class ClusterGenerator extends AbstractGenerator {
+    constructor(size, numclusters, probability, clusterGen, lower, upper) {
+        super(size, lower, upper);
+        this.numclusters = numclusters;
+        this.probability = probability;
+        this.clusterGen = clusterGen;
+    }
+
+    generate() {
+        let self = this;
+        let cy = cytoscape({});
+
+        let clusterSize = Math.floor(this.size / this.numclusters);
+
+        let clusterNodes = {};
+        for (let i =0; i < this.numclusters; i++) {
+            let clusterGraph = this.clusterGen.generate();
+
+            clusterNodes[i] = [];
+
+            let clusterToNodeMap = {};
+            clusterGraph.nodes().forEach(function(ele, ele_i, eles){
+                let clusterNId = ele.id();
+                let node = self.addNode(cy);
+                clusterNodes[i].push(node);
+
+                clusterToNodeMap[clusterNId] = node;
+            });
+
+
+            clusterGraph.edges().forEach(function(ele, ele_i, eles){
+                let clusterSource = ele.source();
+                let clusterTarget = ele.target();
+                let weight = ele.data("weight");
+
+                let nodeSource = clusterToNodeMap[clusterSource.id()];
+                let nodeTarget = clusterToNodeMap[clusterTarget.id()];
+
+                self.addInOutNeightbour(cy, nodeSource, nodeTarget, weight);
+            });
+        }
+
+        for (let i=0; i < this.numclusters; i++) {
+            for(let j=0; j<clusterNodes[i].length; j++) {
+                if (Math.random() <= this.probability) {
+                    let clusterId = Math.floor(Math.random() * (this.numclusters-1));
+                    clusterId = (clusterId + i + 1) % this.numclusters;
+
+                    let targetNodeIndex = Math.floor(Math.random() * clusterNodes[clusterId].length);
+                    let targetNode = clusterNodes[clusterId][targetNodeIndex];
+                    let sourceNode = clusterNodes[i][j];
+
+                    this.addInOutNeightbour(cy, sourceNode, targetNode, this.getWeight());
+                }
+            }
+        }
+
+        return cy;
+    }
 }

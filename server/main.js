@@ -9,8 +9,9 @@ Meteor.startup(() => {
     //constructor for an instance
     TurkServer.Instance.initialize(function () {
         //generate a graph
-        var gen = new InfMax.generators.BarabasiAlbertGenerator(2, 50, 2, 0.1, 0.4);
-        // var gen = new InfMax.generators.ErdosRenyiGenerator(50, 4./50., 0.1, 0.4);
+        let gen1 = new InfMax.generators.BarabasiAlbertGenerator(2, 10, 2, 0.1, 0.4);
+        // let gen = new InfMax.generators.ErdosRenyiGenerator(50, 4./50., 0.1, 0.4);
+        let gen = new InfMax.generators.ClusterGenerator(50, 5, 0.2, gen1, 0.1, 0.4);
         var graph = gen.generate();
 
         //from the cy graph, we only want to store the important data (not the positions and stuff)
