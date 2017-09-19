@@ -83,11 +83,14 @@ Meteor.methods({
     checkComputersTurn: function() {
         var instanceData = InstanceData.findOne();
 
-        //update the turn
+        //are we allowed to play? check whose turn it is, and whether we have seeds remaining
+        let seedsRemaining = instanceData.experiment.seedsRequired - instanceData.experiment.seedsChosen;
+
+        //whose turn is it
         var turnIndex = instanceData.experiment.turnIndex;
         var usersTurn = instanceData.experiment.turnOrder[turnIndex];
 
-        if (usersTurn === "COMPUTER") {
+        if (usersTurn === "COMPUTER" && seedsRemaining > 0) {
             var graph = InfMax.dataToGraph(instanceData.graphElementsData);
             var chosenId = InfMax.imm_algs.highestDegree(graph);
 

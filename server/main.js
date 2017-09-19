@@ -32,6 +32,8 @@ Meteor.startup(() => {
             userColors[computer_id] = "#596c7a";
         }
 
+        users = _.shuffle(users);
+
         //the number of seeds to infect
         var seedsRequired = 4;
 

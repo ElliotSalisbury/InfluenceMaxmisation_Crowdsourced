@@ -7,8 +7,9 @@ Template.experiment.onRendered(function() {
     var thick_thresh = 0.3;
 
     //initialize the graph
+    let cycontainer = document.getElementById('cy');
     cy = cytoscape({
-        container: document.getElementById('cy'),
+        container: cycontainer,
 
         style: [
             {
@@ -42,6 +43,25 @@ Template.experiment.onRendered(function() {
         userZoomingEnabled: false,
         userPanningEnabled:false,
         autoungrabify:true
+    });
+
+
+    //we need to tell cy to update incase the dom has changed, this is fairly hacky
+    let updated = false;
+    cycontainer.addEventListener("mouseleave", function(){
+        console.log("resize");
+        cy.resize();
+        updated = false;
+    });
+    cycontainer.addEventListener("mousemove", function(){
+        if(!updated) {
+            console.log("resize");
+            cy.resize();
+            updated = true;
+        }
+    });
+    cycontainer.addEventListener("click", function(){
+        cy.resize();
     });
 });
 
@@ -113,11 +133,14 @@ function spread(userId) {
 
 Template.experiment.helpers({
     whose_turn:function() {
-        var instanceData = InstanceData.findOne();
+        let instanceData = InstanceData.findOne();
 
         if (instanceData) {
-            var turnId = instanceData.experiment.turnOrder[instanceData.experiment.turnIndex];
+            if (seedsRemaining() <= 0) {
+                return "Game Over";
+            }
 
+            let turnId = instanceData.experiment.turnOrder[instanceData.experiment.turnIndex];
             if (isMyTurn()) {
                 turnId = "Yours";
             }
