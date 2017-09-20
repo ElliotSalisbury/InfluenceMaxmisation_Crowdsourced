@@ -2,6 +2,10 @@
     Please accept the HIT to continue
 </template>
 
+<template name="experiment">
+    {{> Template.dynamic template = currentTemplate }}
+</template>
+
 <template name="survey">
     <form class="survey">
         <p>Was there anything confusing about this HIT?</p>

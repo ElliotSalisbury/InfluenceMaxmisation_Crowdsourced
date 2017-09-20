@@ -23,6 +23,20 @@ Tracker.autorun(function() {
 // code below handles the template logic
 // #############################################
 
+Template.experiment.helpers({
+    currentTemplate: function () {
+        var treatments = TurkServer.treatment().treatments;
+
+
+        if(treatments.indexOf("tutorial_1") >= 0) {
+            return "tutorial_1";
+        }else if(treatments.indexOf("tutorial_2") >= 0) {
+            return "tutorial_2";
+        }
+        return "graph";
+    }
+});
+
 Template.survey.events({
     'submit .survey': function (e) {
         e.preventDefault();

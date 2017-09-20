@@ -2,7 +2,7 @@ let cytoscape = require('cytoscape');
 let bilkent = require('cytoscape-cose-bilkent');
 cytoscape.use( bilkent );
 
-Template.experiment.onRendered(function() {
+Template.graph.onRendered(function() {
     var dotted_thresh = 0.2;
     var thick_thresh = 0.3;
 
@@ -21,6 +21,10 @@ Template.experiment.onRendered(function() {
             {
                 selector: 'node[selectedBy]',
                 style: {
+                    'background-image': 'url("/img/virus.png")',
+                    'background-fit': 'contain',
+                    'width': "50%",
+                    'height': "50%",
                     'background-color': function(ele){return InstanceData.findOne().experiment.turnColors[ele.data('selectedBy')];}
                 }
             },
@@ -45,6 +49,8 @@ Template.experiment.onRendered(function() {
         autoungrabify:true
     });
 
+    //fill the graph with data
+    updateGraph();
 
     //we need to tell cy to update incase the dom has changed, this is fairly hacky
     let updated = false;
@@ -67,9 +73,13 @@ Template.experiment.onRendered(function() {
 
 //run whenever a reactive var changes
 Tracker.autorun(function() {
+    updateGraph();
+});
+
+function updateGraph() {
     //check that we have instanceData
     var instanceData = InstanceData.findOne();
-    if (instanceData) {
+    if (instanceData && typeof cy !== 'undefined') {
         //update the graph and check if the number of elements have changed
         var numElesStart = cy.elements().size();
         cy.json({ elements: instanceData.graphElementsData });
@@ -93,7 +103,7 @@ Tracker.autorun(function() {
             cy.nodes().on("click", nodeOnClick);
         }
     }
-});
+}
 
 function nodeOnClick(e) {
     console.log("clicked");
@@ -131,7 +141,7 @@ function spread(userId) {
     return cy.nodes('[selectedBy="' + userId + '"]').size();
 }
 
-Template.experiment.helpers({
+Template.graph.helpers({
     whose_turn:function() {
         let instanceData = InstanceData.findOne();
 
@@ -153,7 +163,7 @@ Template.experiment.helpers({
     }
 });
 
-Template.experiment.events({
+Template.graph.events({
     'click button#exitSurvey': function () {
         // go to the exit survey
         Meteor.call('goToExitSurvey');

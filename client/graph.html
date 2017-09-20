@@ -1,5 +1,5 @@
 <!--<template name="experiment">-->
-<template name="experiment">
+<template name="graph">
     <style>
         #cy {
             width: 100%;
@@ -14,9 +14,9 @@
         {{> common_instructions EXPANDED="in" }}
 
         <div class="row">
-            <h1>Turn: {{whose_turn}}</h1>
+            <h1 id="turn_indicator">Turn: {{whose_turn}}</h1>
             {{#if seeds_remaining}}
-                <h2>Seeds Remaining: {{seeds_remaining}}</h2>
+                <h2 id="seed_indicator">Seeds Remaining: {{seeds_remaining}}</h2>
             {{else}}
                 <button id="exitSurvey">I'm Done</button>
             {{/if}}
@@ -33,6 +33,7 @@
 </template>
 
 <template name="scoreboard">
+    <div id="scoreboard">
     {{#each scoreboard}}
         <div class="row">
             <div class="col-xs-6">
@@ -43,4 +44,5 @@
             </div>
         </div>
     {{/each}}
+    </div>
 </template>
