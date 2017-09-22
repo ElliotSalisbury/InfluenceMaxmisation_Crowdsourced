@@ -3,6 +3,7 @@ var InfMax = require("./infmax/infmax");
 
 let TUT_1 = "tutorial_1";
 let TUT_2 = "tutorial_2";
+let TUT_3 = "tutorial_3";
 
 Meteor.startup(() => {
     //create the tutorial treatments
@@ -12,8 +13,11 @@ Meteor.startup(() => {
     TurkServer.ensureTreatmentExists({
         name: TUT_2,
     });
+    TurkServer.ensureTreatmentExists({
+        name: TUT_3,
+    });
 
-    let tutorialTreatments = [TUT_1,TUT_2];
+    let tutorialTreatments = [TUT_1,TUT_2,TUT_3];
 
     Batches.upsert({ name: "main" }, { name: "main", active: true });
     var batch = TurkServer.Batch.getBatchByName("main");
@@ -26,6 +30,8 @@ Meteor.startup(() => {
             initialize_tutorial_1(this);
         }else if(instanceTreatments.indexOf(TUT_2) != -1) {
             initialize_tutorial_2(this);
+        }else if(instanceTreatments.indexOf(TUT_3) != -1) {
+            initialize_tutorial_3(this);
         }else {
             initialize_experiment(this);
         }
@@ -98,6 +104,44 @@ function initialize_tutorial_2(instance) {
     });
 }
 
+function initialize_tutorial_3(instance) {
+    let gen = new InfMax.generators.BarabasiAlbertGenerator(3, 20, 2, 0.1, 0.3);
+    let graph = gen.generate();
+    let graphData = InfMax.graphToData(graph);
+
+    //get the user participating in this tutorial (there'll only be one)
+    let users = instance.instance.users();
+    let userColors = {};
+    for(let i=0; i<users.length; i++) {
+        let color = '#00FF00';
+        userColors[users[i]] = color;
+    }
+
+    let computer_id = "COMPUTER";
+    users.unshift(computer_id);
+    userColors[computer_id] = "#596c7a";
+
+    let seedsRequired = 6;
+
+    //create a new InstanceData for this experiment, containing the graphdata and experiment info.
+    InstanceData.insert({
+        graphElementsData:graphData,
+        experiment:{
+            seedsRequired:seedsRequired,
+            seedsChosen:0,
+
+            turnIndex:0,
+            turnOrder:users,
+            turnColors:userColors
+        }
+    });
+
+    //if the computer is first, we need to run their turn
+    if(users[0] === "COMPUTER") {
+        Meteor.call("checkComputersTurn");
+    }
+}
+
 function initialize_experiment(instance) {
     //generate a graph
     let gen1 = new InfMax.generators.BarabasiAlbertGenerator(2, 10, 2, 0.1, 0.4);
@@ -126,7 +170,7 @@ function initialize_experiment(instance) {
     users = _.shuffle(users);
 
     //the number of seeds to infect
-    var seedsRequired = 4;
+    var seedsRequired = 8;
 
     //create a new InstanceData for this experiment, containing the graphdata and experiment info.
     InstanceData.insert({

@@ -1,7 +1,8 @@
 import { Template } from 'meteor/templating';
 import { ReactiveVar } from 'meteor/reactive-var';
+let InfMax = require("./lib/InfluenceMaximisationGraph");
 
-import './main.html';
+// import './main.html';
 
 //redirects the client to appropriate page depending on the clients TurkServer state
 Tracker.autorun(function() {
@@ -32,9 +33,15 @@ Template.experiment.helpers({
             return "tutorial_1";
         }else if(treatments.indexOf("tutorial_2") >= 0) {
             return "tutorial_2";
+        }else if(treatments.indexOf("tutorial_3") >= 0) {
+            return "tutorial_3";
         }
-        return "graph";
+        return "main_game";
     }
+});
+
+Template.main_game.onRendered(function() {
+    infMaxGraph = new InfMax.InfluenceMaximisationGraph("cy");
 });
 
 Template.survey.events({

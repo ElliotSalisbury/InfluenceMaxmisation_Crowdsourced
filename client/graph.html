@@ -11,22 +11,25 @@
     </style>
 
     <div class="container">
-        {{> common_instructions EXPANDED="in" }}
+        {{> common_instructions }}
 
         <div class="row">
-            <h1 id="turn_indicator">Turn: {{whose_turn}}</h1>
-            {{#if seeds_remaining}}
-                <h2 id="seed_indicator">Seeds Remaining: {{seeds_remaining}}</h2>
-            {{else}}
-                <button id="exitSurvey">I'm Done</button>
-            {{/if}}
-        </div>
-        <div class="row">
             <div class="col-xs-8">
-                <div id="cy"></div>
+                <div class="row">
+                    <h1 id="turn_indicator">Turn: {{whose_turn}}</h1>
+                    <h2 id="seed_indicator">Turns Remaining: {{seeds_remaining}}</h2>
+                </div>
+                <div class="row">
+                    <div id="cy"></div>
+                </div>
             </div>
             <div class="col-xs-4">
+                <div class="row">
+                    <button class="btn btn-primary" id="exitSurvey">I'm Done</button>
+                </div>
+                <div class="row">
                 {{> scoreboard }}
+                </div>
             </div>
         </div>
     </div>
