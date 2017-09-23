@@ -5,7 +5,7 @@ Template.tutorial_1.onRendered(function() {
         steps: [
             {
                 element: "#cy",
-                intro: "Welcome! Here you can see the network of people (blue circles). The lines connecting people represent their friendships. Our aim is to infect as many of them with a disease."
+                intro: "Welcome! Here you can see the network of people (blue circles). The lines connecting people represent their friendships. Our aim is to infect as many of them as possible with a disease."
             },
             {
                 element: "#cy",
@@ -26,6 +26,7 @@ Template.tutorial_1.onRendered(function() {
                 element: "#exitSurvey",
                 intro: "Once you're ready, click here to move onto the next tutorial",
                 disableInteraction: false,
+                disableNext:true,
             },
         ],
         exitOnEsc: false,
@@ -66,6 +67,7 @@ Template.tutorial_2.onRendered(function() {
                 element: "#exitSurvey",
                 intro: "Once you're ready, click here to move onto the next tutorial",
                 disableInteraction: false,
+                disableNext:true,
             },
         ],
         exitOnEsc: false,
@@ -103,6 +105,8 @@ Template.tutorial_3.onRendered(function() {
                 element: "#cy",
                 intro: "Keep playing, until there are no more turns left. Once you're done, click the blue 'Done' button above to move onto the next tutorial",
                 disableInteraction: false,
+                disableNext:true,
+                waitOnClick:true,
             },
         ],
         exitOnEsc: false,

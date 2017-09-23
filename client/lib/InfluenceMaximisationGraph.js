@@ -24,11 +24,15 @@ export class InfluenceMaximisationGraph {
                 {
                     selector: 'node[selectedBy]',
                     style: {
-                        'background-image': 'url("/img/virus.png")',
+                        'background-image': function(ele) {
+                            return InstanceData.findOne().experiment.turnLogos[ele.data('selectedBy')]
+                        },
                         'background-fit': 'contain',
                         'width': "50%",
                         'height': "50%",
-                        'background-color': function(ele){return InstanceData.findOne().experiment.turnColors[ele.data('selectedBy')];}
+                        'background-color': function(ele){
+                            return InstanceData.findOne().experiment.turnColors[ele.data('selectedBy')];
+                        }
                     }
                 },
                 {
@@ -154,14 +158,11 @@ export class TutorialInfluenceMaximisationGraph extends InfluenceMaximisationGra
         this.intro = introJs();
         this.intro.setOptions(options);
         this.intro.start();
+        $('.introjs-bullets').hide();
         $('.introjs-skipbutton').hide();
+        $('.introjs-prevbutton').hide();
 
         this.intro.onafterchange(function(){
-            //re-enable the done/skip button
-            if (this._introItems.length - 1 == this._currentStep || this._introItems.length == 1) {
-                $('.introjs-skipbutton').show();
-            }
-
             //for each step, lets see if there's things we need to toggle
             let curr_step = this._introItems[this._currentStep];
             if(curr_step.disableNext) {
@@ -181,7 +182,7 @@ export class TutorialInfluenceMaximisationGraph extends InfluenceMaximisationGra
     nodeOnClick(e) {
         let allowed = super.nodeOnClick(e);
 
-        if(this.waitOnClick && allowed) {
+        if(this.waitOnClick && allowed && this.intro._currentStep) {
             this.intro.nextStep();
         }
     }
@@ -192,8 +193,8 @@ export class TutorialInfluenceMaximisationGraph extends InfluenceMaximisationGra
 
     setNextButtonDisabled(disabled) {
         if(disabled)
-            $(".introjs-nextbutton").addClass("introjs-disabled");
+            $('.introjs-nextbutton').hide();
         else
-            $(".introjs-nextbutton").removeClass("introjs-disabled");
+            $('.introjs-nextbutton').show();
     }
 }

@@ -50,9 +50,11 @@ function initialize_tutorial_1(instance) {
     //get the user participating in this tutorial (there'll only be one)
     let users = instance.instance.users();
     let userColors = {};
+    let userLogos = {};
     for(let i=0; i<users.length; i++) {
         let color = '#00FF00';
         userColors[users[i]] = color;
+        userLogos[users[i]] = 'url("/img/DAIS_Logo.png")';
     }
 
     let seedsRequired = 1;
@@ -66,7 +68,8 @@ function initialize_tutorial_1(instance) {
 
             turnIndex:0,
             turnOrder:users,
-            turnColors:userColors
+            turnColors:userColors,
+            turnLogos:userLogos,
         }
     });
 }
@@ -79,14 +82,17 @@ function initialize_tutorial_2(instance) {
     //get the user participating in this tutorial (there'll only be one)
     let users = instance.instance.users();
     let userColors = {};
+    let userLogos = {};
     for(let i=0; i<users.length; i++) {
         let color = '#00FF00';
         userColors[users[i]] = color;
+        userLogos[users[i]] = 'url("/img/DAIS_Logo.png")';
     }
 
     let computer_id = "COMPUTER";
     users.push(computer_id);
-    userColors[computer_id] = "#596c7a";
+    userColors[computer_id] = "#ffffff";
+    userLogos[computer_id] = 'url("/img/Bad_guys_logo.png")';
 
     let seedsRequired = 2;
 
@@ -99,7 +105,8 @@ function initialize_tutorial_2(instance) {
 
             turnIndex:0,
             turnOrder:users,
-            turnColors:userColors
+            turnColors:userColors,
+            turnLogos:userLogos,
         }
     });
 }
@@ -112,14 +119,17 @@ function initialize_tutorial_3(instance) {
     //get the user participating in this tutorial (there'll only be one)
     let users = instance.instance.users();
     let userColors = {};
+    let userLogos = {};
     for(let i=0; i<users.length; i++) {
         let color = '#00FF00';
         userColors[users[i]] = color;
+        userLogos[users[i]] = 'url("/img/DAIS_Logo.png")';
     }
 
     let computer_id = "COMPUTER";
     users.unshift(computer_id);
-    userColors[computer_id] = "#596c7a";
+    userColors[computer_id] = "#ffffff";
+    userLogos[computer_id] = 'url("/img/Bad_guys_logo.png")';
 
     let seedsRequired = 6;
 
@@ -132,7 +142,8 @@ function initialize_tutorial_3(instance) {
 
             turnIndex:0,
             turnOrder:users,
-            turnColors:userColors
+            turnColors:userColors,
+            turnLogos:userLogos,
         }
     });
 
@@ -156,15 +167,19 @@ function initialize_experiment(instance) {
     var users = instance.instance.users();
 
     var userColors = {};
+    let userLogos = {};
+    let logos = ['url("/img/DAIS_Logo.png")', 'url("/img/Bad_guys_logo.png")'];
     for(var i=0; i<users.length; i++) {
         var color = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
         userColors[users[i]] = color;
+        userLogos[users[i]] = logos[i%logos.length];
     }
 
     if (users.length < 2) {
         var computer_id = "COMPUTER";
         users.push(computer_id);
-        userColors[computer_id] = "#596c7a";
+        userColors[computer_id] = "#ffffff";
+        userLogos[computer_id] = logos[i%logos.length];
     }
 
     users = _.shuffle(users);
@@ -181,7 +196,8 @@ function initialize_experiment(instance) {
 
             turnIndex:0,
             turnOrder:users,
-            turnColors:userColors
+            turnColors:userColors,
+            turnLogos:userLogos,
         }
     });
 

@@ -63,8 +63,9 @@ TurkServer.Assigners.GraphPairAssigner = class extends TurkServer.Assigner {
         }
 
         // filter out the users who already performed an experiment, they're going to be routed to the exit survey anyway
+        let self = this;
         usersToAdd = _.filter(usersInLobby, function(asst) {
-            return asst.getInstances().length === 0;
+            return asst.getInstances().length === self.tutorialStages.length;
         });
 
         //randomly take 2 users
