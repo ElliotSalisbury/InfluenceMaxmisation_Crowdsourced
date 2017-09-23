@@ -5,22 +5,22 @@ Template.tutorial_1.onRendered(function() {
         steps: [
             {
                 element: "#cy",
-                intro: "Welcome! Here you can see the network of people (blue circles). The lines connecting people represent their friendships. Our aim is to infect as many of them as possible with a disease."
+                intro: "Welcome! Here you can see the network of people (blue circles). The lines connecting people represent the strength of their relationship. Our aim is to influence as many of them as possible."
             },
             {
                 element: "#cy",
-                intro: "Click on a person (blue circle) to infect them. Preferrably someone with lots of connected friends.",
+                intro: "Click on a person (blue circle) to influence them. Preferrably someone with lots of connected friends.",
                 disableInteraction: false,
                 disableNext:true,
                 waitOnClick:true,
             },
             {
                 element: "#cy",
-                intro: "Great job! Notice how your disease spread through the population. But, not everyone got infected, maybe they had a good immune system, the chance they get infect is represented by the thickness of the connecting lines.",
+                intro: "Great job! Notice how many people are joining your side! But not everyone got influenced - maybe they are resistant to new ideas. The chance they get influenced is represented by the thickness of the connecting lines.",
             },
             {
                 element: "#cy",
-                intro: "Thick lines mean that person is likely to catch the disease, thin lines less so, and dotted lines very little.",
+                intro: "Thick lines mean those people are likely to influence each other, thin lines less so, and dotted lines very little.",
             },
             {
                 element: "#exitSurvey",
@@ -46,18 +46,18 @@ Template.tutorial_2.onRendered(function() {
             },
             {
                 element: "#cy",
-                intro: "As before, click on a person (blue circle) to infect them.",
+                intro: "As before, click on a person (blue circle) to influence them.",
                 disableInteraction: false,
                 disableNext:true,
                 waitOnClick:true,
             },
             {
                 element: "#cy",
-                intro: "Great job! Now your opponent takes their turn. Their disease can spread too, but it cannot infect the people you've already infected.",
+                intro: "Great job! Now your opponent takes their turn. They can convince people to join their side against you, but they cannot influence people who you've already influenced.",
             },
             {
                 element: "#scoreboard",
-                intro: "Here's the scoreboard, it shows how many you infected, and how many your opponent infected.",
+                intro: "Here's the scoreboard, it shows how many you and your opponent influenced.",
             },
             {
                 element: "#seed_indicator",
@@ -84,22 +84,22 @@ Template.tutorial_3.onRendered(function() {
         steps: [
             {
                 element: "#seed_indicator",
-                intro: "Now we're going to play a longer game! This time your opponent will go first."
+                intro: "Now we're going to play a longer game! This time your opponent will go first.",
             },
             {
                 element: "#turn_indicator",
-                intro: "It's currently your turn. Your opponent has already taken theirs."
+                intro: "It's currently your turn. Your opponent has already taken theirs.",
             },
             {
                 element: "#cy",
-                intro: "Click on a person (blue circle) to infect them. You cannot re-infect your opponents targets.",
+                intro: "Click on a person (blue circle) to influence them. You cannot re-influence your opponents targets.",
                 disableInteraction: false,
                 disableNext:true,
                 waitOnClick:true,
             },
             {
                 element: "#scoreboard",
-                intro: "Great job! Try and get the highest number of infected people, you can see your score here.",
+                intro: "Great job! Try and get the highest number of influenced people, you can see your score here.",
             },
             {
                 element: "#cy",
