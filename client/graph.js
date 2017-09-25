@@ -74,7 +74,9 @@ Template.scoreboard.helpers({
                 spread = infMaxGraph.spreadOfUser(userId);
             }
 
-            scoreboard.push({id:userId, spread:spread});
+            var logoUrl = instanceData.experiment.turnLogos[userId];
+
+            scoreboard.push({id:userId, spread:spread, logourl:logoUrl});
         }
         return scoreboard;
     }

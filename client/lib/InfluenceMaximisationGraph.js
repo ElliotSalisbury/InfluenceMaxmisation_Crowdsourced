@@ -25,7 +25,7 @@ export class InfluenceMaximisationGraph {
                     selector: 'node[selectedBy]',
                     style: {
                         'background-image': function(ele) {
-                            return InstanceData.findOne().experiment.turnLogos[ele.data('selectedBy')]
+                            return "url(\""+InstanceData.findOne().experiment.turnLogos[ele.data('selectedBy')]+"\")";
                         },
                         'background-fit': 'contain',
                         'width': "50%",

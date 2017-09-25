@@ -54,7 +54,7 @@ function initialize_tutorial_1(instance) {
     for(let i=0; i<users.length; i++) {
         let color = '#00FF00';
         userColors[users[i]] = color;
-        userLogos[users[i]] = 'url("/img/DAIS_Logo.png")';
+        userLogos[users[i]] = "/img/DAIS_Logo.png";
     }
 
     let seedsRequired = 1;
@@ -86,13 +86,13 @@ function initialize_tutorial_2(instance) {
     for(let i=0; i<users.length; i++) {
         let color = '#00FF00';
         userColors[users[i]] = color;
-        userLogos[users[i]] = 'url("/img/DAIS_Logo.png")';
+        userLogos[users[i]] = "/img/DAIS_Logo.png";
     }
 
     let computer_id = "COMPUTER";
     users.push(computer_id);
     userColors[computer_id] = "#ffffff";
-    userLogos[computer_id] = 'url("/img/Bad_guys_logo.png")';
+    userLogos[computer_id] = "/img/Bad_guys_logo.png";
 
     let seedsRequired = 2;
 
@@ -123,13 +123,13 @@ function initialize_tutorial_3(instance) {
     for(let i=0; i<users.length; i++) {
         let color = '#00FF00';
         userColors[users[i]] = color;
-        userLogos[users[i]] = 'url("/img/DAIS_Logo.png")';
+        userLogos[users[i]] = "/img/DAIS_Logo.png";
     }
 
     let computer_id = "COMPUTER";
     users.unshift(computer_id);
     userColors[computer_id] = "#ffffff";
-    userLogos[computer_id] = 'url("/img/Bad_guys_logo.png")';
+    userLogos[computer_id] = "/img/Bad_guys_logo.png";
 
     let seedsRequired = 6;
 
@@ -168,7 +168,7 @@ function initialize_experiment(instance) {
 
     var userColors = {};
     let userLogos = {};
-    let logos = ['url("/img/DAIS_Logo.png")', 'url("/img/Bad_guys_logo.png")'];
+    let logos = ["/img/DAIS_Logo.png", "/img/Bad_guys_logo.png"];
     for(var i=0; i<users.length; i++) {
         var color = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
         userColors[users[i]] = color;

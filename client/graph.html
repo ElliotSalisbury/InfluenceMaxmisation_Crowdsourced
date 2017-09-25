@@ -38,15 +38,17 @@
 
 <template name="scoreboard">
     <div id="scoreboard">
+    <hr>
     {{#each scoreboard}}
         <div class="row">
             <div class="col-xs-6">
-                {{id}}
+                <img class="img-responsive" src="{{logourl}}">
             </div>
             <div class="col-xs-6">
                 {{spread}}
             </div>
         </div>
+        <hr>
     {{/each}}
     </div>
 </template>
