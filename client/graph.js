@@ -29,9 +29,11 @@ Template.graph.helpers({
             let remaining = infMaxGraph.seedsRemaining();
 
             if(remaining <= 0) {
-                $("#exitSurvey").prop("disabled", false);
+                $("#continue").prop("disabled", false);
+                $("#end").prop("disabled", false);
             } else {
-                $("#exitSurvey").prop("disabled", true);
+                $("#continue").prop("disabled", true);
+                $("#end").prop("disabled", true);
             }
 
             return remaining;
@@ -41,7 +43,14 @@ Template.graph.helpers({
 });
 
 Template.graph.events({
-    'click button#exitSurvey': function () {
+    'click button#continue': function () {
+        if(typeof infMaxGraph !== "undefined") {
+            infMaxGraph.done();
+        }
+        // go to the exit survey
+        Meteor.call('goToNext');
+    },
+    'click button#end': function () {
         if(typeof infMaxGraph !== "undefined") {
             infMaxGraph.done();
         }

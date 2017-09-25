@@ -23,7 +23,7 @@ Template.tutorial_1.onRendered(function() {
                 intro: "Thick lines mean those people are likely to influence each other, thin lines less so, and dotted lines very little.",
             },
             {
-                element: "#exitSurvey",
+                element: "#continue",
                 intro: "Once you're ready, click here to move onto the next tutorial",
                 disableInteraction: false,
                 disableNext:true,
@@ -64,7 +64,7 @@ Template.tutorial_2.onRendered(function() {
                 intro: "This was a short game, and now there are no more turns left to play.",
             },
             {
-                element: "#exitSurvey",
+                element: "#continue",
                 intro: "Once you're ready, click here to move onto the next tutorial",
                 disableInteraction: false,
                 disableNext:true,
@@ -103,7 +103,7 @@ Template.tutorial_3.onRendered(function() {
             },
             {
                 element: "#cy",
-                intro: "Keep playing, until there are no more turns left. Once you're done, click the blue 'Done' button above to move onto the next tutorial",
+                intro: "Keep playing, until there are no more turns left. Once you're done, click the blue 'Continue' button above to move onto the next tutorial",
                 disableInteraction: false,
                 disableNext:true,
                 waitOnClick:true,

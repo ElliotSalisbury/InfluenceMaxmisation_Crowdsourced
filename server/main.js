@@ -112,7 +112,7 @@ function initialize_tutorial_2(instance) {
 }
 
 function initialize_tutorial_3(instance) {
-    let gen = new InfMax.generators.BarabasiAlbertGenerator(3, 20, 2, 0.1, 0.3);
+    let gen = new InfMax.generators.BarabasiAlbertGenerator(3, 25, 2, 0.1, 0.4);
     let graph = gen.generate();
     let graphData = InfMax.graphToData(graph);
 

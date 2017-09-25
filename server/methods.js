@@ -2,7 +2,13 @@
 var InfMax = require("./infmax/infmax");
 
 Meteor.methods({
+    goToNext: function() {
+        var exp = TurkServer.Instance.currentInstance();
+        exp.teardown();
+    },
     goToExitSurvey: function() {
+        let ast = TurkServer.Assignment.currentAssignment();
+        ast.setWorkerData({"goToExitSurvey": true});
         var exp = TurkServer.Instance.currentInstance();
         exp.teardown();
     },

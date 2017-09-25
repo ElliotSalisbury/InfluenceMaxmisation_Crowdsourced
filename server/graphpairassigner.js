@@ -12,6 +12,14 @@ TurkServer.Assigners.GraphPairAssigner = class extends TurkServer.Assigner {
     // This function gets run when the user enters the lobby
     userJoined(asst) {
 
+        //does this user want to quit
+        let workerData = asst.getWorkerData();
+        if (typeof workerData !== "undefined" && "goToExitSurvey" in workerData) {
+            // Take user out of lobby, send user to exit survey
+            this.lobby.pluckUsers([asst.userId]);
+            asst.showExitSurvey();
+        }
+
         //lets check what the user has completed so far (#tutorials, #experiments)
         let instances = asst.getInstances();
         let tutorialsCompleted = 0;
@@ -43,11 +51,7 @@ TurkServer.Assigners.GraphPairAssigner = class extends TurkServer.Assigner {
         if (tutorialsCompleted < this.tutorialStages.length) {
             this.assignToNewInstance([asst], [this.tutorialStages[tutorialsCompleted]]);
         //have they already perfomed an experiment, then let them quit
-        } else if (experimentsCompleted > 0) {
-            // Take user out of lobby, send user to exit survey
-            this.lobby.pluckUsers([asst.userId]);
-            asst.showExitSurvey();
-        }else if (Meteor.settings.public.turkserver.autoLobby == true) {
+        } else if (Meteor.settings.public.turkserver.autoLobby == true) {
             //singleplayer, instantly assign to experiment, make sure autoLobby = true in settings.json
             const treatments = this.batch.getTreatments() || [];
             var inst = this.assignToNewInstance([asst], treatments);
