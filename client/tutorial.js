@@ -32,6 +32,7 @@ Template.tutorial_1.onRendered(function() {
         exitOnEsc: false,
         exitOnOverlayClick: false,
         showStepNumbers: false,
+        showBullets:false,
         keyboardNavigation: false,
         disableInteraction: true,
     });
@@ -73,6 +74,7 @@ Template.tutorial_2.onRendered(function() {
         exitOnEsc: false,
         exitOnOverlayClick: false,
         showStepNumbers: false,
+        showBullets:false,
         keyboardNavigation: false,
         disableInteraction: true,
 
@@ -112,6 +114,7 @@ Template.tutorial_3.onRendered(function() {
         exitOnEsc: false,
         exitOnOverlayClick: false,
         showStepNumbers: false,
+        showBullets:false,
         keyboardNavigation: false,
         disableInteraction: true,
     });

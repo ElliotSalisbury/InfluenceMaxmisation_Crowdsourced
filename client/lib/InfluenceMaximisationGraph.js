@@ -2,10 +2,11 @@ let cytoscape = require('cytoscape');
 let bilkent = require('cytoscape-cose-bilkent');
 cytoscape.use( bilkent );
 
-let introJs = require('intro.js').introJs;
+let introJs = require('./intro.js').introJs;
 
 export class InfluenceMaximisationGraph {
     constructor(elementId) {
+        this.ID = Date.now();
         let self = this;
         this.dotted_thresh = 0.2;
         this.thick_thresh = 0.3;
@@ -101,8 +102,11 @@ export class InfluenceMaximisationGraph {
                 //when we click on a node, we are infecting it
                 this.cy.nodes().removeListener('click');
                 this.cy.nodes().on("click", e => this.nodeOnClick(e));
+
+                return true;
             }
         }
+        return false;
     }
 
     nodeOnClick(e) {
@@ -153,35 +157,49 @@ export class InfluenceMaximisationGraph {
 export class TutorialInfluenceMaximisationGraph extends InfluenceMaximisationGraph {
     constructor(elementId, options) {
         super(elementId);
-        let self = this;
 
         this.intro = introJs();
-        this.intro.setOptions(options);
-        this.intro.start();
+        this.options = options;
+        this.intro.setOptions(this.options);
         $('.introjs-bullets').hide();
         $('.introjs-skipbutton').hide();
         $('.introjs-prevbutton').hide();
 
+        this.intro.infMax = this;
         this.intro.onafterchange(function(){
+            console.log("intro change");
+            console.log(this.infMax.ID);
+
             //for each step, lets see if there's things we need to toggle
             let curr_step = this._introItems[this._currentStep];
             if(curr_step.disableNext) {
-                self.setNextButtonDisabled(true);
+                this.infMax.setNextButtonDisabled(true);
             } else {
-                self.setNextButtonDisabled(false);
+                this.infMax.setNextButtonDisabled(false);
             }
 
             if(curr_step.waitOnClick) {
-                self.waitOnClick=true;
+                this.infMax.waitOnClick=true;
             } else {
-                self.waitOnClick=false;
+                this.infMax.waitOnClick=false;
             }
         });
+
+        let instanceData = InstanceData.findOne();
+
+        if (instanceData) {
+            $('.introjs-bullets').hide();
+            $('.introjs-skipbutton').hide();
+            $('.introjs-prevbutton').hide();
+            this.intro.start();
+        }
     }
 
     nodeOnClick(e) {
         let allowed = super.nodeOnClick(e);
 
+        console.log("node clicked");
+        console.log(this.ID);
         if(this.waitOnClick && allowed && this.intro._currentStep) {
             this.intro.nextStep();
         }
@@ -196,5 +214,16 @@ export class TutorialInfluenceMaximisationGraph extends InfluenceMaximisationGra
             $('.introjs-nextbutton').hide();
         else
             $('.introjs-nextbutton').show();
+    }
+
+    updateGraph() {
+        let updated = super.updateGraph();
+
+        if(updated && typeof this.intro !== "undefined") {
+            $('.introjs-bullets').hide();
+            $('.introjs-skipbutton').hide();
+            $('.introjs-prevbutton').hide();
+            this.intro.start();
+        }
     }
 }

@@ -9,7 +9,6 @@
     "bootstrap": "3.3.7",
     "cytoscape": "3.2.3",
     "cytoscape-cose-bilkent": "^2.1.0",
-    "intro.js": "^2.8.0-alpha.1",
     "meteor-node-stubs": "~0.2.4"
   }
 }
