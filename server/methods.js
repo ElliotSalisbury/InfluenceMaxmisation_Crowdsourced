@@ -72,13 +72,12 @@ Meteor.methods({
                 for(let i=0; i<newNodes.length; i++) {
                     newNodes[i].data("selectedBy", currentUser);
                 }
-
-                let graphData = InfMax.graphToData(graph);
-                InstanceData.upsert({_id: instanceData._id},
-                    {
-                        $set: {"graphElementsData":graphData}
-                    });
             }
+            let graphData = InfMax.graphToData(graph);
+            InstanceData.upsert({_id: instanceData._id},
+                {
+                    $set: {"graphElementsData":graphData}
+                });
         }
 
 

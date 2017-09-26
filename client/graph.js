@@ -1,8 +1,5 @@
 let InfMax = require("./lib/InfluenceMaximisationGraph");
 
-Template.graph.onRendered(function() {
-});
-
 Template.graph.helpers({
     whose_turn:function() {
         let instanceData = InstanceData.findOne();

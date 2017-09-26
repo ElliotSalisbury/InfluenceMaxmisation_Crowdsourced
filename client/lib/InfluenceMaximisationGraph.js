@@ -18,6 +18,8 @@ export class InfluenceMaximisationGraph {
         this.thick_thresh = 0.3;
 
         this.containerId = containerId;
+
+        console.log("constructor", this.ID);
     }
 
     static getInstance(containerId) {
@@ -28,8 +30,11 @@ export class InfluenceMaximisationGraph {
     }
 
     updateGraph(instanceData) {
+        console.log("updateGraph", this.ID);
+
         //if we havent created the cygraph, or the dom has changed and we need to create a new one
         if(typeof this.cycontainer === "undefined" || !document.body.contains(this.cycontainer)) {
+            console.log("--creating cy", this.ID);
             let containerElement = document.getElementById(this.containerId);
             if(containerElement == null) {
                 return;
@@ -101,6 +106,7 @@ export class InfluenceMaximisationGraph {
         }
 
         //fill the graph with data
+        console.log("--update elements", this.ID);
         //update the graph and check if the number of elements have changed
         let numElesStart = this.cy.elements().size();
         this.cy.json({ elements: instanceData.graphElementsData });
@@ -108,9 +114,10 @@ export class InfluenceMaximisationGraph {
 
         //if we have new elements, we need to relayout the graph, and initialize the event listeners
         if (numElesStart != numElesEnd) {
-
+            console.log("--relayout", this.ID);
             this.cy.layout({
-                name:"cose-bilkent",
+                // name:"cose-bilkent",
+                name:"cose",
                 animate: false,
                 nodeRepulsion: 8000,
                 nestingFactor: 0.001,
@@ -126,7 +133,7 @@ export class InfluenceMaximisationGraph {
     }
 
     nodeOnClick(e) {
-        console.log("clicked");
+        console.log("node clicked", this.ID);
         let node = e.target;
 
         if (this.isMyTurn() && this.seedsRemaining() && !node.data("selectedBy")) {
@@ -137,12 +144,16 @@ export class InfluenceMaximisationGraph {
     }
 
     _destroy() {
-        this.cy.destroy();
-        delete this.cy;
-        delete this.cycontainer;
+        console.log("_destroy", this.ID);
+        if(typeof this.cy !== "undefined") {
+            this.cy.destroy();
+            delete this.cy;
+            delete this.cycontainer;
+        }
     }
 
     static destroy() {
+        console.log("static destroy");
         if(InfluenceMaximisationGraph[_singleton]) {
             InfluenceMaximisationGraph[_singleton]._destroy();
             delete InfluenceMaximisationGraph[_singleton];
@@ -183,6 +194,8 @@ export class TutorialInfluenceMaximisationGraph extends InfluenceMaximisationGra
         super(singletonToken, elementId);
 
         this.options = options;
+
+        console.log("tut constructor", this.ID);
     }
 
     static getInstance(containerId, options) {
@@ -195,8 +208,7 @@ export class TutorialInfluenceMaximisationGraph extends InfluenceMaximisationGra
     nodeOnClick(e) {
         let allowed = super.nodeOnClick(e);
 
-        console.log("node clicked");
-        console.log(this.ID);
+        console.log("tut node clicked", this.ID);
         if(this.waitOnClick && allowed && this.intro._currentStep) {
             this.intro.nextStep();
         }
@@ -208,6 +220,7 @@ export class TutorialInfluenceMaximisationGraph extends InfluenceMaximisationGra
             this.intro.exit(true);
             delete this.intro;
         }
+        console.log("tut _destroy", this.ID);
     }
 
     setNextButtonDisabled(disabled) {
@@ -221,14 +234,13 @@ export class TutorialInfluenceMaximisationGraph extends InfluenceMaximisationGra
         super.updateGraph(instanceData);
 
         //now that we have instance data, lets create and start the tutorial
-        if(typeof this.intro === "undefined" && instanceData.experiment.seedsChosen === 0) {
+        if(typeof this.intro === "undefined") {
             this.intro = introJs();
             this.intro.setOptions(this.options);
 
             this.intro.infMax = this;
             this.intro.onafterchange(function(){
-                console.log("intro change");
-                console.log(this.infMax.ID);
+                console.log("tut intro change", this.infMax.ID);
 
                 //for each step, lets see if there's things we need to toggle
                 let curr_step = this._introItems[this._currentStep];
