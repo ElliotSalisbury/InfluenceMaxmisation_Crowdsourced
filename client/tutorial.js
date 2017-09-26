@@ -36,6 +36,13 @@ Template.tutorial_1.onRendered(function() {
         keyboardNavigation: false,
         disableInteraction: true,
     });
+
+    Tracker.autorun(function() {
+        let instanceData = InstanceData.findOne();
+        if (instanceData) {
+            infMaxGraph.updateGraph(instanceData);
+        }
+    })
 });
 
 Template.tutorial_2.onRendered(function() {
@@ -79,6 +86,13 @@ Template.tutorial_2.onRendered(function() {
         disableInteraction: true,
 
     });
+
+    Tracker.autorun(function() {
+        let instanceData = InstanceData.findOne();
+        if (instanceData) {
+            infMaxGraph.updateGraph(instanceData);
+        }
+    })
 });
 
 Template.tutorial_3.onRendered(function() {
@@ -118,4 +132,11 @@ Template.tutorial_3.onRendered(function() {
         keyboardNavigation: false,
         disableInteraction: true,
     });
+
+    Tracker.autorun(function() {
+        let instanceData = InstanceData.findOne();
+        if (instanceData) {
+            infMaxGraph.updateGraph(instanceData);
+        }
+    })
 });

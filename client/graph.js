@@ -1,10 +1,4 @@
 Template.graph.onRendered(function() {
-    //run whenever a reactive var changes
-    this.autorun(function() {
-        if(typeof infMaxGraph !== "undefined") {
-            infMaxGraph.updateGraph();
-        }
-    });
 });
 
 Template.graph.helpers({
@@ -61,20 +55,21 @@ Template.graph.events({
 
 Template.scoreboard.helpers({
     scoreboard:function() {
-        var instanceData = InstanceData.findOne();
+        let instanceData = InstanceData.findOne();
 
         if (!instanceData) return [];
 
-        var scoreboard = [];
-        for (var i in instanceData.experiment.turnOrder) {
-            var userId = instanceData.experiment.turnOrder[i];
+        let scoreboard = [];
+        for (let i in instanceData.experiment.turnOrder) {
+            let userId = instanceData.experiment.turnOrder[i];
 
             let spread = 0;
-            if(typeof infMaxGraph !== "undefined") {
-                spread = infMaxGraph.spreadOfUser(userId);
-            }
+            instanceData.graphElementsData.forEach(function(ele) {
+                if (ele.data.selectedBy === userId)
+                    spread += 1;
+            });
 
-            var logoUrl = instanceData.experiment.turnLogos[userId];
+            let logoUrl = instanceData.experiment.turnLogos[userId];
 
             scoreboard.push({id:userId, spread:spread, logourl:logoUrl});
         }

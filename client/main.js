@@ -42,6 +42,13 @@ Template.experiment.helpers({
 
 Template.main_game.onRendered(function() {
     infMaxGraph = new InfMax.InfluenceMaximisationGraph("cy");
+
+    Tracker.autorun(function() {
+        let instanceData = InstanceData.findOne();
+        if (instanceData) {
+            infMaxGraph.updateGraph(instanceData);
+        }
+    })
 });
 
 Template.survey.events({
