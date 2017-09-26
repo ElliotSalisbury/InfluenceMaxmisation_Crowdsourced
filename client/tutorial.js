@@ -1,7 +1,7 @@
 let InfMax = require("./lib/InfluenceMaximisationGraph");
 
 Template.tutorial_1.onRendered(function() {
-    infMaxGraph = new InfMax.TutorialInfluenceMaximisationGraph("cy", {
+    infMaxGraph = InfMax.TutorialInfluenceMaximisationGraph.getInstance("cy", {
         steps: [
             {
                 element: "#cy",
@@ -44,9 +44,12 @@ Template.tutorial_1.onRendered(function() {
         }
     })
 });
+Template.tutorial_1.onDestroyed(function() {
+    InfMax.InfluenceMaximisationGraph.destroy();
+});
 
 Template.tutorial_2.onRendered(function() {
-    infMaxGraph = new InfMax.TutorialInfluenceMaximisationGraph("cy", {
+    infMaxGraph = InfMax.TutorialInfluenceMaximisationGraph.getInstance("cy", {
         steps: [
             {
                 element: "#turn_indicator",
@@ -94,9 +97,12 @@ Template.tutorial_2.onRendered(function() {
         }
     })
 });
+Template.tutorial_2.onDestroyed(function() {
+    InfMax.InfluenceMaximisationGraph.destroy();
+});
 
 Template.tutorial_3.onRendered(function() {
-    infMaxGraph = new InfMax.TutorialInfluenceMaximisationGraph("cy", {
+    infMaxGraph = InfMax.TutorialInfluenceMaximisationGraph.getInstance("cy", {
         steps: [
             {
                 element: "#seed_indicator",
@@ -139,4 +145,7 @@ Template.tutorial_3.onRendered(function() {
             infMaxGraph.updateGraph(instanceData);
         }
     })
+});
+Template.tutorial_3.onDestroyed(function() {
+    InfMax.InfluenceMaximisationGraph.destroy();
 });

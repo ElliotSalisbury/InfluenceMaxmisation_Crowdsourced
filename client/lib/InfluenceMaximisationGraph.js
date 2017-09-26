@@ -4,14 +4,27 @@ cytoscape.use( bilkent );
 
 let introJs = require('./intro.js').introJs;
 
+const _singleton = Symbol();
+
 export class InfluenceMaximisationGraph {
-    constructor(containerId) {
+    constructor(singletonToken, containerId) {
+        if(singletonToken !== _singleton) {
+            throw "Cannot construct singleton";
+        }
+
         this.ID = Date.now();
         let self = this;
         this.dotted_thresh = 0.2;
         this.thick_thresh = 0.3;
 
         this.containerId = containerId;
+    }
+
+    static getInstance(containerId) {
+        if(!InfluenceMaximisationGraph[_singleton]) {
+            InfluenceMaximisationGraph[_singleton] = new InfluenceMaximisationGraph(_singleton, containerId);
+        }
+        return InfluenceMaximisationGraph[_singleton];
     }
 
     updateGraph(instanceData) {
@@ -21,6 +34,8 @@ export class InfluenceMaximisationGraph {
             if(containerElement == null) {
                 return;
             }
+
+            let self = this; //TODO i dont like this, remove it somehow
             this.cycontainer = containerElement;
             this.cy = cytoscape({
                 container: this.cycontainer,
@@ -121,8 +136,17 @@ export class InfluenceMaximisationGraph {
         return false;
     }
 
-    done() {
+    _destroy() {
+        this.cy.destroy();
+        delete this.cy;
+        delete this.cycontainer;
+    }
 
+    static destroy() {
+        if(InfluenceMaximisationGraph[_singleton]) {
+            InfluenceMaximisationGraph[_singleton]._destroy();
+            delete InfluenceMaximisationGraph[_singleton];
+        }
     }
 
     spreadOfUser(userId) {
@@ -155,10 +179,17 @@ export class InfluenceMaximisationGraph {
 }
 
 export class TutorialInfluenceMaximisationGraph extends InfluenceMaximisationGraph {
-    constructor(elementId, options) {
-        super(elementId);
+    constructor(singletonToken, elementId, options) {
+        super(singletonToken, elementId);
 
         this.options = options;
+    }
+
+    static getInstance(containerId, options) {
+        if(!InfluenceMaximisationGraph[_singleton]) {
+            InfluenceMaximisationGraph[_singleton] = new TutorialInfluenceMaximisationGraph(_singleton, containerId, options);
+        }
+        return InfluenceMaximisationGraph[_singleton];
     }
 
     nodeOnClick(e) {
@@ -171,8 +202,12 @@ export class TutorialInfluenceMaximisationGraph extends InfluenceMaximisationGra
         }
     }
 
-    done() {
-        this.intro.exit(true);
+    _destroy() {
+        super._destroy();
+        if(typeof this.intro !== "undefined") {
+            this.intro.exit(true);
+            delete this.intro;
+        }
     }
 
     setNextButtonDisabled(disabled) {
@@ -186,7 +221,7 @@ export class TutorialInfluenceMaximisationGraph extends InfluenceMaximisationGra
         super.updateGraph(instanceData);
 
         //now that we have instance data, lets create and start the tutorial
-        if(typeof this.intro === "undefined") {
+        if(typeof this.intro === "undefined" && instanceData.experiment.seedsChosen === 0) {
             this.intro = introJs();
             this.intro.setOptions(this.options);
 
@@ -203,11 +238,7 @@ export class TutorialInfluenceMaximisationGraph extends InfluenceMaximisationGra
                     this.infMax.setNextButtonDisabled(false);
                 }
 
-                if(curr_step.waitOnClick) {
-                    this.infMax.waitOnClick=true;
-                } else {
-                    this.infMax.waitOnClick=false;
-                }
+                this.infMax.waitOnClick=curr_step.waitOnClick;
             });
 
             this.intro.start();

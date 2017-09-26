@@ -1,3 +1,5 @@
+let InfMax = require("./lib/InfluenceMaximisationGraph");
+
 Template.graph.onRendered(function() {
 });
 
@@ -38,16 +40,12 @@ Template.graph.helpers({
 
 Template.graph.events({
     'click button#continue': function () {
-        if(typeof infMaxGraph !== "undefined") {
-            infMaxGraph.done();
-        }
+        InfMax.InfluenceMaximisationGraph.destroy();
         // go to the exit survey
         Meteor.call('goToNext');
     },
     'click button#end': function () {
-        if(typeof infMaxGraph !== "undefined") {
-            infMaxGraph.done();
-        }
+        InfMax.InfluenceMaximisationGraph.destroy();
         // go to the exit survey
         Meteor.call('goToExitSurvey');
     }
