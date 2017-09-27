@@ -116,8 +116,8 @@ export class InfluenceMaximisationGraph {
         if (numElesStart != numElesEnd) {
             console.log("--relayout", this.ID);
             this.cy.layout({
-                // name:"cose-bilkent",
-                name:"cose",
+                name:"cose-bilkent",
+                // name:"cose",
                 animate: false,
                 nodeRepulsion: 8000,
                 nestingFactor: 0.001,

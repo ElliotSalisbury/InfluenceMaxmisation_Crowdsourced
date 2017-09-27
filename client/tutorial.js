@@ -37,12 +37,10 @@ Template.tutorial_1.onRendered(function() {
         disableInteraction: true,
     });
 
-    Tracker.autorun(function() {
-        let instanceData = InstanceData.findOne();
-        if (instanceData) {
-            infMaxGraph.updateGraph(instanceData);
-        }
-    })
+    let instanceData = InstanceData.findOne();
+    if (instanceData) {
+        infMaxGraph.updateGraph(instanceData);
+    }
 });
 Template.tutorial_1.onDestroyed(function() {
     InfMax.InfluenceMaximisationGraph.destroy();
@@ -87,15 +85,12 @@ Template.tutorial_2.onRendered(function() {
         showBullets:false,
         keyboardNavigation: false,
         disableInteraction: true,
-
     });
 
-    Tracker.autorun(function() {
-        let instanceData = InstanceData.findOne();
-        if (instanceData) {
-            infMaxGraph.updateGraph(instanceData);
-        }
-    })
+    let instanceData = InstanceData.findOne();
+    if (instanceData) {
+        infMaxGraph.updateGraph(instanceData);
+    }
 });
 Template.tutorial_2.onDestroyed(function() {
     InfMax.InfluenceMaximisationGraph.destroy();
@@ -139,12 +134,10 @@ Template.tutorial_3.onRendered(function() {
         disableInteraction: true,
     });
 
-    Tracker.autorun(function() {
-        let instanceData = InstanceData.findOne();
-        if (instanceData) {
-            infMaxGraph.updateGraph(instanceData);
-        }
-    })
+    let instanceData = InstanceData.findOne();
+    if (instanceData) {
+        infMaxGraph.updateGraph(instanceData);
+    }
 });
 Template.tutorial_3.onDestroyed(function() {
     InfMax.InfluenceMaximisationGraph.destroy();

@@ -11,14 +11,25 @@ Tracker.autorun(function() {
     } else if (TurkServer.inExitSurvey()) {
         Router.go('/survey');
     }
-
+});
+Tracker.autorun(function() {
     //subscribe to instance data
     var group = TurkServer.group();
     if (group == null) return;
 
     // Force meteor to re-subscribe with a different group
-    Meteor.subscribe("instanceData", group);
+    let instanceDataHandle = Meteor.subscribe("instanceData", group, () => {
+        console.log("subscribed to instance Data");
+        Tracker.autorun(() => {
+            console.log("autorun");
+            let instanceData = InstanceData.findOne();
+            if (instanceData && typeof infMaxGraph !== "undefined") {
+                infMaxGraph.updateGraph(instanceData);
+            }
+        });
+    });
 });
+
 
 // #############################################
 // code below handles the template logic
@@ -42,13 +53,6 @@ Template.experiment.helpers({
 
 Template.main_game.onRendered(function() {
     infMaxGraph = InfMax.InfluenceMaximisationGraph.getInstance("cy");
-
-    Tracker.autorun(function() {
-        let instanceData = InstanceData.findOne();
-        if (instanceData) {
-            infMaxGraph.updateGraph(instanceData);
-        }
-    })
 });
 Template.main_game.onDestroyed(function() {
     InfMax.InfluenceMaximisationGraph.destroy();
