@@ -66,11 +66,12 @@ function initialize_tutorial_1(instance) {
             seedsRequired:seedsRequired,
             seedsChosen:0,
 
-            turnIndex:0,
+            turn:0,
             turnOrder:users,
             turnColors:userColors,
             turnLogos:userLogos,
-        }
+        },
+        events:[]
     });
 }
 
@@ -103,11 +104,12 @@ function initialize_tutorial_2(instance) {
             seedsRequired:seedsRequired,
             seedsChosen:0,
 
-            turnIndex:0,
+            turn:0,
             turnOrder:users,
             turnColors:userColors,
             turnLogos:userLogos,
-        }
+        },
+        events:[]
     });
 }
 
@@ -140,11 +142,12 @@ function initialize_tutorial_3(instance) {
             seedsRequired:seedsRequired,
             seedsChosen:0,
 
-            turnIndex:0,
+            turn:0,
             turnOrder:users,
             turnColors:userColors,
             turnLogos:userLogos,
-        }
+        },
+        events:[]
     });
 
     //if the computer is first, we need to run their turn
@@ -194,11 +197,12 @@ function initialize_experiment(instance) {
             seedsRequired:seedsRequired,
             seedsChosen:0,
 
-            turnIndex:0,
+            turn:0,
             turnOrder:users,
             turnColors:userColors,
             turnLogos:userLogos,
-        }
+        },
+        events:[]
     });
 
     //if the computer is first, we need to run their turn

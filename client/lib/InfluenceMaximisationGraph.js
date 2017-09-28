@@ -168,7 +168,8 @@ export class InfluenceMaximisationGraph {
         let instanceData = InstanceData.findOne();
 
         if (instanceData) {
-            let turnId = instanceData.experiment.turnOrder[instanceData.experiment.turnIndex];
+            let turnIndex = instanceData.experiment.turn % instanceData.experiment.turnOrder.length;
+            let turnId = instanceData.experiment.turnOrder[turnIndex];
             return Meteor.userId() === turnId;
         }
         return false;

@@ -9,7 +9,8 @@ Template.graph.helpers({
                 return "Game Over";
             }
 
-            let turnId = instanceData.experiment.turnOrder[instanceData.experiment.turnIndex];
+            let turnIndex = instanceData.experiment.turn % instanceData.experiment.turnOrder.length;
+            let turnId = instanceData.experiment.turnOrder[turnIndex];
             if (infMaxGraph.isMyTurn()) {
                 turnId = "Yours";
             }
