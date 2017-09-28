@@ -17,6 +17,9 @@ export class InfluenceMaximisationGraph {
         this.dotted_thresh = 0.2;
         this.thick_thresh = 0.3;
 
+        //animate events as they happen
+        this.eventIndex = -1;
+
         this.containerId = containerId;
 
         console.log("constructor", this.ID);
@@ -56,12 +59,19 @@ export class InfluenceMaximisationGraph {
                         selector: 'node[selectedBy]',
                         style: {
                             'background-image': function(ele) {
+                                if (ele.data('eventIndex') > self.eventIndex) {
+                                    return "url(\"\")";
+                                }
+
                                 return "url(\""+InstanceData.findOne().experiment.turnLogos[ele.data('selectedBy')]+"\")";
                             },
                             'background-fit': 'contain',
                             'width': "50%",
                             'height': "50%",
                             'background-color': function(ele){
+                                if (ele.data('eventIndex') > self.eventIndex) {
+                                    return '#2a9ee0';
+                                }
                                 return InstanceData.findOne().experiment.turnColors[ele.data('selectedBy')];
                             }
                         }
@@ -109,14 +119,14 @@ export class InfluenceMaximisationGraph {
         console.log("--update elements", this.ID);
         //update the graph and check if the number of elements have changed
         let numElesStart = this.cy.elements().size();
-        this.cy.json({ elements: instanceData.graphElementsData });
+        this.cy.json({elements: instanceData.graphElementsData});
         let numElesEnd = this.cy.elements().size();
 
         //if we have new elements, we need to relayout the graph, and initialize the event listeners
         if (numElesStart != numElesEnd) {
             console.log("--relayout", this.ID);
             this.cy.layout({
-                name:"cose-bilkent",
+                name: "cose-bilkent",
                 // name:"cose",
                 animate: false,
                 nodeRepulsion: 8000,
@@ -129,6 +139,17 @@ export class InfluenceMaximisationGraph {
             //when we click on a node, we are infecting it
             this.cy.nodes().removeListener('click');
             this.cy.nodes().on("click", e => this.nodeOnClick(e));
+        }
+
+        this.animateHandle = setTimeout(() => this.incEventIndex(instanceData),500);
+    }
+
+    incEventIndex(instanceData) {
+        if (this.eventIndex < instanceData.events.length - 1) {
+            this.eventIndex += 1;
+            this.cy.style().update();
+
+            this.animateHandle = setTimeout(() => this.incEventIndex(instanceData),500);
         }
     }
 

@@ -38,6 +38,7 @@ Meteor.methods({
                 }
 
                 graphElementsData[i].data.selectedBy = currentUser;
+                graphElementsData[i].data.eventIndex = instanceData.events.length;
                 nodeFound = true;
                 break;
             }
@@ -85,6 +86,7 @@ Meteor.methods({
             //update the nodes data to say which user it belongs too and log the event
             for(let i=0; i<newNodes.length; i++) {
                 newNodes[i].data("selectedBy", currentUser);
+                newNodes[i].data("eventIndex", instanceData.events.length + turnEvents.length);
                 let event = {
                     "event":"infected",
                     "nodeId":newNodes[i].id(),
