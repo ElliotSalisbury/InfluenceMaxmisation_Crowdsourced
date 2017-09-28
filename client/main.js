@@ -20,14 +20,14 @@ Tracker.autorun(function() {
     // Force meteor to re-subscribe with a different group
     let instanceDataHandle = Meteor.subscribe("instanceData", group, () => {
         console.log("subscribed to instance Data");
-        Tracker.autorun(() => {
-            console.log("autorun");
-            let instanceData = InstanceData.findOne();
-            if (instanceData && typeof infMaxGraph !== "undefined") {
-                infMaxGraph.updateGraph(instanceData);
-            }
-        });
     });
+});
+Tracker.autorun(() => {
+    console.log("autorun");
+    let instanceData = InstanceData.findOne();
+    if (instanceData && typeof infMaxGraph !== "undefined") {
+        infMaxGraph.updateGraph(instanceData);
+    }
 });
 
 
