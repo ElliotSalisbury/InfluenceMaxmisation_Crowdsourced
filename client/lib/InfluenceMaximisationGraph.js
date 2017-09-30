@@ -141,15 +141,24 @@ export class InfluenceMaximisationGraph {
             this.cy.nodes().on("click", e => this.nodeOnClick(e));
         }
 
-        this.animateHandle = setTimeout(() => this.incEventIndex(instanceData),500);
+        if(typeof this.animateHandle === "undefined") {
+            this.incEventIndex();
+        }
     }
 
-    incEventIndex(instanceData) {
+    incEventIndex() {
+        let instanceData = InstanceData.findOne();
         if (this.eventIndex < instanceData.events.length - 1) {
             this.eventIndex += 1;
             this.cy.style().update();
 
-            this.animateHandle = setTimeout(() => this.incEventIndex(instanceData),500);
+            let timing = 100;
+            if(this.eventIndex+1 < instanceData.events.length && instanceData.events[this.eventIndex+1].event === "chosen") {
+                timing = 500;
+            }
+            this.animateHandle = setTimeout(() => this.incEventIndex(),timing);
+        }else {
+            delete this.animateHandle;
         }
     }
 
