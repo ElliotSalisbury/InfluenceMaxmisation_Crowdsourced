@@ -123,7 +123,7 @@ Meteor.methods({
     },
 
     checkComputersTurn: function() {
-        var instanceData = InstanceData.findOne();
+        let instanceData = InstanceData.findOne();
 
         //are we allowed to play? check whose turn it is, and whether we have seeds remaining
         let seedsRemaining = instanceData.experiment.seedsRequired - instanceData.experiment.seedsChosen;
@@ -133,9 +133,10 @@ Meteor.methods({
         let currentTurnIndex = currentTurn % instanceData.experiment.turnOrder.length;
         let currentUser = instanceData.experiment.turnOrder[currentTurnIndex];
 
-        if (currentUser === "COMPUTER" && seedsRemaining > 0) {
-            var graph = InfMax.dataToGraph(instanceData.graphElementsData);
-            var chosenId = InfMax.imm_algs.highestDegree(graph);
+        if (currentUser.indexOf("COMPUTER") !== -1 && seedsRemaining > 0) {
+            let graph = InfMax.dataToGraph(instanceData.graphElementsData);
+            // let chosenId = InfMax.imm_algs.highestDegree(graph);
+            let chosenId = InfMax.imm_algs.imm(graph, seedsRemaining);
 
             Meteor.call("progressTurn", chosenId);
         }
