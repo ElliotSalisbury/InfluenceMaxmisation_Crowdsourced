@@ -79,7 +79,7 @@ export class InfluenceMaximisationGraph {
                     {
                         selector: 'edge',
                         style: {
-                            'width': function( ele ){
+                            'width': function (ele) {
                                 if (ele.data('weight') < self.thick_thresh) {
                                     return 2;
                                 } else {
@@ -87,7 +87,27 @@ export class InfluenceMaximisationGraph {
                                 }
                             },
                             'line-color': '#eca41a',
-                            'line-style': function( ele ){return ele.data('weight') < self.dotted_thresh ? 'dashed' : 'solid'; },
+                            'line-style': function (ele) {
+                                return ele.data('weight') < self.dotted_thresh ? 'dashed' : 'solid';
+                            },
+                        }
+                    },
+                    {
+                        selector: '[!selectedBy] <-> [selectedBy]',
+                        style: {
+                            'line-color': function (ele) {
+                                let lastInfected = InstanceData.findOne().nodesLastInfected;
+                                if (lastInfected.indexOf(ele.source().id()) > 0 || lastInfected.indexOf(ele.target().id()) > 0) {
+                                    return '#ec0300'
+                                }
+                                return "#eca41a"
+                            }
+                        }
+                    },
+                    {
+                        selector: '[selectedBy] <-> [selectedBy]',
+                        style: {
+                            'line-color': "#969696"
                         }
                     }
                 ],

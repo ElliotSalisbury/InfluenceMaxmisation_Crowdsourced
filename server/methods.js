@@ -61,48 +61,46 @@ Meteor.methods({
         //after selecting a node, run the influence spread
         let graph = InfMax.dataToGraph(graphElementsData);
 
-        //create a model that spreads influence, and populate it with the already infected nodes (those already influenced from the previous turns)
-        let epidemicModel = new InfMax.spread.IndependentCascadeModel(graph);
-        let infected = graph.nodes("[selectedBy]").toArray();
-        epidemicModel.setInfectedNodes(infected);
-
         //get the node selected node, and infect it
-        let selectedNode = graph.$id(selectedId);
-        epidemicModel.infectNode(selectedNode);
+        let nodesLastInfected = instanceData.nodesLastInfected || [];
+        let newNodesInfected = [];
+        for(let i=0; i<nodesLastInfected.length; i++) {
+            //create a model that spreads influence, and populate it with the already infected nodes (those already influenced from the previous turns)
+            let epidemicModel = new InfMax.spread.IndependentCascadeModel(graph);
+            let infected = graph.nodes("[selectedBy]").toArray();
+            epidemicModel.setInfectedNodes(infected);
 
+            let infectedNode = graph.$id(nodesLastInfected[i]);
+            let infectorUserId = infectedNode.data("selectedBy");
 
-        //record the spread of the influence in the events
-        newEvents = instanceData.events;
-
-        //loop until we have no more nodes left to infect
-        let done = false;
-        while (!done) {
-            //get nodes that were infected by a step in this model
+            epidemicModel.infectNode(infectedNode);
             let newNodes = epidemicModel.runStep();
-            if (newNodes.length === 0) {
-                done = true;
-            }
 
-            //update the nodes data to say which user it belongs too and log the event
             for(let i=0; i<newNodes.length; i++) {
-                newNodes[i].data("selectedBy", currentUser);
+                newNodesInfected.push(newNodes[i].id());
+
+                newNodes[i].data("selectedBy", infectorUserId);
                 newNodes[i].data("eventIndex", instanceData.events.length + turnEvents.length);
                 let event = {
                     "event":"infected",
                     "nodeId":newNodes[i].id(),
                     "turn":currentTurn,
-                    "userId":currentUser,
+                    "userId":infectorUserId,
                     "datetime":Date.now()
                 };
                 turnEvents.push(event);
             }
         }
+        //add our selected node to the end of the queue
+        newNodesInfected.push(selectedId);
+
         graphElementsData = InfMax.graphToData(graph);
 
         //construct the object we're going to use to update the DB
         let dbUpdateObj = {
             $set:{
-                "graphElementsData":graphElementsData // we're setting the whole graphdata object to the new one
+                "graphElementsData":graphElementsData, // we're setting the whole graphdata object to the new one
+                "nodesLastInfected":newNodesInfected,
             },
             $inc:{
                 "experiment.turn":1, // increment the turn by 1

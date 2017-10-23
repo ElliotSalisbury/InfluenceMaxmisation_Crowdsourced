@@ -1,3 +1,5 @@
+var cytoscape = require('cytoscape');
+
 export function highestDegree(graph, nLeftToPick) {
     var availableNodes = graph.nodes("[!selectedBy]");
 
@@ -9,17 +11,18 @@ export function highestDegree(graph, nLeftToPick) {
 }
 
 export function imm(graph, nLeftToPick) {
-    // let availableNodes = graph.nodes("[!selectedBy]");
+    //generate new graph that only has uninfected nodes
+    let graphCopy = cytoscape({});
+    graphCopy.json(graph.json());
+    graphCopy.$('[selectedBy]').remove();
 
-    //maybe need special cases so if we have less than 1 node, etc...
-    let estimator = new InfluenceEstimator(graph);
-
+    let estimator = new InfluenceEstimator(graphCopy);
 
     let epsilon = 0.1;
     let OPT_prime = step1(nLeftToPick, estimator, epsilon);
     step2(nLeftToPick, estimator, OPT_prime, epsilon);
 
-    return "n"+estimator.seedSet[0];
+    return estimator.seedSet[0];
 }
 
 function log2(p) {
@@ -41,10 +44,16 @@ function step1(n, estimator, epsilon) {
     let select = Math.min(n, estimator.n);
 
     let epsilon_prime = epsilon * Math.sqrt(2);
-    for(let x = 1;; x++) {
+    for(let x = 1; x<10; x++) {
+
 
         // how to get from x to how many runs are needed (number of runs
         // grow exponentiually if condition unmet)
+
+        //avoids infinite loop
+        if(n === 1) {
+            n = 2;
+        }
 
         let part1 = (2 + 2.0 / 3 * epsilon_prime) * (Math.log(n) + logcnk(n, select) + (Math.log(log2(n))) * Math.pow(2.0, x));
 
@@ -53,6 +62,7 @@ function step1(n, estimator, epsilon) {
         estimator.build_hypergraph_r(Math.floor(result));
         estimator.build_seedset(select);
         let ept = estimator.estimateInfluence();
+
         if (ept > 1 / Math.pow(2.0, x)) {
             let OPT_prime = ept / (1 + epsilon_prime);
             return OPT_prime;
@@ -78,42 +88,43 @@ class InfluenceEstimator {
     constructor(graph) {
         this.graph = graph;
 
-        this.hyperG = [];
+        this.hyperG = {};
         this.hyperGT = [];
 
         this.seedSet = [];
 
+        this.n = this.graph.nodes().size();
+
         this.runs = 0;
-        this.n = graph.nodes().size();
-        this.visit_mark = [];
-        this.visit = [];
 
         this.init_hypergraph();
-
-
     }
 
     init_hypergraph() {
-        this.hyperG = [];
-        for (let i = 0; i < this.n; i++) {
-            this.hyperG.push([]);
+        this.hyperG = {};
 
-            this.visit_mark.push(0);
-            this.visit.push(false);
-        }
+        let self = this;
+        this.graph.nodes().forEach(function(ele, i, eles) {
+            self.hyperG[ele.id()] = [];
+        });
+
         this.hyperGT = [];
         this.runs = 0;
     }
 
     build_hypergraph_r(runs) {
-        this.runs = runs;
+        this.runs = Math.max(this.runs, runs);
         let prevSize = this.hyperGT.length;
-        while (this.hyperGT.length <= this.runs) {
+        while (this.hyperGT.length < this.runs) {
             this.hyperGT.push([]);
         }
 
+        let nodeIds = [];
+        this.graph.nodes().forEach(function(ele,i,eles){nodeIds.push(ele.id());});
+
         for (let k = prevSize; k < this.runs; k++) {
-            this.buildHypergraphNode(Math.floor(Math.random() * this.n), k);
+            let nodeId = _.sample(nodeIds, 1)[0];
+            this.buildHypergraphNode(nodeId, k);
         }
 
         for (let i = prevSize; i < this.runs; i++) {
@@ -125,73 +136,65 @@ class InfluenceEstimator {
     }
 
 
-    buildHypergraphNode(nodeIndex, hyperEdgeNum) {
-        let n_visit_edge = 1; // number of edges traversed
-        let n_visit_mark = 0; // order of visitation
+    buildHypergraphNode(nodeId, hyperEdgeNum) {
+        let n_visit_edge = 1;
         let q = [];
 
-        this.hyperGT[hyperEdgeNum].push(nodeIndex); // Start the hyperedge
+        this.hyperGT[hyperEdgeNum].push(nodeId); // Start the hyperedge
 
-        q.push(nodeIndex);
-        this.visit_mark[n_visit_mark++] = nodeIndex;
-        this.visit[nodeIndex] = true;
+        q.push(nodeId);
+        let visit_mark = [];
+        visit_mark.push(nodeId);
+
+        let visited = new Set();
+        visited.add(nodeId);
 
         while (q.length > 0) {
-            let i = q.shift();
-            let testedNode = this.graph.$id("n"+i);
+            let id = q.shift();
+            let testedNode = this.graph.$id(id);
 
             let weightedInEdges = testedNode.incomers("edge");
             // int inDegree = (int) weightedInEdges.size();
             let self = this;
             weightedInEdges.forEach(function(neighbourEdge, i, eles) {
                 let v = neighbourEdge.source().id(); // get j-th neighbor
-                v = parseInt(v.substr(1)); // remove leading 'n'
                 let weight = neighbourEdge.data("weight"); // what is the weight of the edge?
 
                 n_visit_edge++;
                 if (Math.random() > weight) {
                     return;
                 }
-                if (self.visit[v]) {
+                if (visited.has(v)) {
                     return;
                 }
-                if (!self.visit[v]) {
-                    self.visit_mark[n_visit_mark++] = v;
-                    self.visit[v] = true;
-                }
+
+                visited.add(v);
                 q.push(v);
                 self.hyperGT[hyperEdgeNum].push(v); // add new node to hyperedge
             });
-        }
-
-        // reset visit check marks
-        for (let l = 0; l < n_visit_mark; l++) {
-            this.visit[this.visit_mark[l]] = false;
         }
         return n_visit_edge;
     }
 
     build_seedset(nMost) {
-        let degree = [];
+        let degree = {};
         let visitLocal = [];
         this.seedSet = [];
-        for (let i = 0; i < this.n; i++) {
-            degree.push(0);
-        }
         for (let i = 0; i < this.runs; i++) {
             visitLocal.push(false);
         }
 
-
-        for (let i = 0; i < this.n; i++) {
-            degree[i] = this.hyperG[i].length; // for size of influence set
+        for (let nId in this.hyperG) {
+            if (this.hyperG.hasOwnProperty(nId)) {
+                degree[nId] = this.hyperG[nId].length; // for size of influence set
+            }
         }
 
         let toSelect = Math.min(this.n, nMost);
 
         for (let i = 0; i < toSelect; i++) {
             let id = this.findMaxIndex(degree);
-            if (id > -1) {
+            if (id !== -1) {
                 this.seedSet.push(id);
                 degree[id] = 0;
                 for (let j=0; j<this.hyperG[id].length; j++) {
@@ -222,15 +225,18 @@ class InfluenceEstimator {
         return inf;
     }
 
-    findMaxIndex(array) {
+    findMaxIndex(dict) {
         let max = -1;
-        let maxIndex = -1;
-        for (let i = 0; i < array.length; i++) {
-            if (array[i] >= max) {
-                maxIndex = i;
-                max = array[i];
+        let maxKey = -1;
+        for (let key in dict) {
+            if (dict.hasOwnProperty(key)) {
+                if (dict[key] >= max) {
+                    maxKey = key;
+                    max = dict[key];
+                }
             }
         }
-        return maxIndex;
+
+        return maxKey;
     }
 }
