@@ -14,10 +14,10 @@ Meteor.methods({
     },
 
     progressTurn: function(selectedId) {
-        //if we don't have a valid selectedId, then we cannot continue
-        if (!selectedId) {
-            return;
-        }
+        // //if we don't have a valid selectedId, then we cannot continue
+        // if (!selectedId) {
+        //     return;
+        // }
 
         let instanceData = InstanceData.findOne();
 
@@ -26,37 +26,40 @@ Meteor.methods({
         let currentTurnIndex = currentTurn % instanceData.experiment.turnOrder.length;
         let currentUser = instanceData.experiment.turnOrder[currentTurnIndex];
 
-        //loop through the nodes and find the selected one
-        let graphElementsData = instanceData.graphElementsData;
-        let nodeFound = false;
-        for(let i=0; i<graphElementsData.length; i++) {
-            let id = graphElementsData[i].data.id;
-            if(id === selectedId) {
-                //this node has already been selected, invalid move, we cannot continue
-                if(graphElementsData[i].data.selectedBy) {
-                    return;
-                }
-
-                graphElementsData[i].data.selectedBy = currentUser;
-                graphElementsData[i].data.eventIndex = instanceData.events.length;
-                nodeFound = true;
-                break;
-            }
-        }
-        if (!nodeFound) {
-            return; //we didnt find the selectedId in our graph, invalid move, we cannot continue
-        }
-
-        //create an event for selecting this node
         let turnEvents = [];
-        let event = {
-            "event":"selected",
-            "nodeId":selectedId,
-            "turn":currentTurn,
-            "userId":currentUser,
-            "datetime":Date.now()
-        };
-        turnEvents.push(event);
+        let graphElementsData = instanceData.graphElementsData;
+
+        //loop through the nodes and find the selected one
+        if (selectedId) {
+            let nodeFound = false;
+            for (let i = 0; i < graphElementsData.length; i++) {
+                let id = graphElementsData[i].data.id;
+                if (id === selectedId) {
+                    //this node has already been selected, invalid move, we cannot continue
+                    if (graphElementsData[i].data.selectedBy) {
+                        return;
+                    }
+
+                    graphElementsData[i].data.selectedBy = currentUser;
+                    graphElementsData[i].data.eventIndex = instanceData.events.length;
+                    nodeFound = true;
+                    break;
+                }
+            }
+            if (!nodeFound) {
+                return; //we didnt find the selectedId in our graph, invalid move, we cannot continue
+            }
+
+            //create an event for selecting this node
+            let event = {
+                "event":"selected",
+                "nodeId":selectedId,
+                "turn":currentTurn,
+                "userId":currentUser,
+                "datetime":Date.now()
+            };
+            turnEvents.push(event);
+        }
 
         //after selecting a node, run the influence spread
         let graph = InfMax.dataToGraph(graphElementsData);
@@ -92,7 +95,9 @@ Meteor.methods({
             }
         }
         //add our selected node to the end of the queue
-        newNodesInfected.push(selectedId);
+        if (selectedId) {
+            newNodesInfected.push(selectedId);
+        }
 
         graphElementsData = InfMax.graphToData(graph);
 
@@ -104,7 +109,6 @@ Meteor.methods({
             },
             $inc:{
                 "experiment.turn":1, // increment the turn by 1
-                "experiment.seedsChosen":1 // increment seeds chosen by 1 (how is this diff to turn?)
             },
             $push:{
                 "events" : {
@@ -116,15 +120,24 @@ Meteor.methods({
         //store the data into this experiment's InstanceData instance
         InstanceData.upsert({_id: instanceData._id}, dbUpdateObj);
 
-        Meteor.call("checkComputersTurn");
-        // Meteor.call("runSpread");
+        console.log(instanceData.experiment.seedsRequired - (instanceData.experiment.turn+1), newNodesInfected.length > 0);
+        if (instanceData.experiment.seedsRequired - (instanceData.experiment.turn+1) <= 0 && newNodesInfected.length > 0) {
+            Meteor.call("progressTurn");
+        }else {
+            Meteor.call("checkComputersTurn");
+        }
+
+        //TODO: add the bonus payment based on spread
+        // var assts = TurkServer.Instance.users();
+        // var asst = TurkServer.Assignment.currentAssignment();
+        // asst.addPayment(0.1);
     },
 
     checkComputersTurn: function() {
         let instanceData = InstanceData.findOne();
 
         //are we allowed to play? check whose turn it is, and whether we have seeds remaining
-        let seedsRemaining = instanceData.experiment.seedsRequired - instanceData.experiment.seedsChosen;
+        let seedsRemaining = instanceData.experiment.seedsRequired - instanceData.experiment.turn;
 
         //whose turn is it
         let currentTurn = instanceData.experiment.turn;
@@ -138,38 +151,5 @@ Meteor.methods({
 
             Meteor.call("progressTurn", chosenId);
         }
-    },
-
-    runSpread: function() {
-        var instanceData = InstanceData.findOne();
-
-        //check if we need to run the spread algorithm
-        if(instanceData.experiment.seedsChosen === instanceData.experiment.seedsRequired) {
-            let graph = InfMax.dataToGraph(instanceData.graphElementsData);
-
-            let infected = graph.nodes("[selectedBy]").toArray();
-
-            let epidemicModel = new InfMax.spread.IndependentCascadeModel(graph);
-            epidemicModel.infectNodes(infected);
-
-            let done = false;
-            while (!done) {
-                let newNodes = epidemicModel.runStep();
-                if (newNodes.length === 0) {
-                    done = true;
-                }
-            }
-
-            let graphData = InfMax.graphToData(graph);
-            InstanceData.upsert({_id: instanceData._id},
-                {
-                    $set: {"graphElementsData":graphData}
-                });
-        }
-
-        //TODO: add the bonus payment based on spread
-        // var assts = TurkServer.Instance.users();
-        // var asst = TurkServer.Assignment.currentAssignment();
-        // asst.addPayment(0.1);
     },
 });

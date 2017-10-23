@@ -17,6 +17,8 @@ export class InfluenceMaximisationGraph {
         this.dotted_thresh = 0.2;
         this.thick_thresh = 0.3;
 
+
+
         //animate events as they happen
         this.eventIndex = -1;
 
@@ -73,6 +75,52 @@ export class InfluenceMaximisationGraph {
                                     return '#2a9ee0';
                                 }
                                 return InstanceData.findOne().experiment.turnColors[ele.data('selectedBy')];
+                            },
+                            'border-width': "5px",
+                            "border-color": function(ele) {
+                                let instanceData = InstanceData.findOne();
+                                let lastInfected = instanceData.nodesLastInfected;
+
+                                if (instanceData.experiment.seedsRequired - instanceData.experiment.turn <= 0 && newNodesInfected.length === 0) {
+                                    //if the game has ended, calculate who won
+                                    let maxSpread = 0;
+                                    let winnerIds = [];
+                                    for(let i=0; i<instanceData.experiment.turnOrder.length; i++) {
+                                        let userId = instanceData.experiment.turnOrder[i];
+                                        let spread = self.spreadOfUser(userId);
+                                        if (spread > maxSpread) {
+                                            maxSpread = spread;
+                                            winnerIds = [userId,];
+                                        }else if (spread === maxSpread) {
+                                            winnerIds.push(userId);
+                                        }
+                                    }
+
+                                    //change the winners color
+                                    if (winnerIds.indexOf(ele.data('selectedBy')) !== -1) {
+                                        return "#fbf80a";
+                                    } else {
+                                        return "#969696";
+                                    }
+                                }else {
+                                    //if the node has no more connections it can make
+                                    let availableConnections = ele.outgoers("node[!selectedBy]");
+                                    if (availableConnections.size() === 0) {
+                                        return "#969696";
+                                    }
+
+
+                                    let index = lastInfected.indexOf(ele.id());
+                                    if (index === lastInfected.length - 1) {
+                                        //if the node was the last one selected, highlight it
+                                        return '#fbf80a';
+                                    } else if (index !== -1) {
+                                        //if the node could still infect more
+                                        return '#ec0300';
+                                    }
+                                    //this node is inactive now
+                                    return "#000000";
+                                }
                             }
                         }
                     },
@@ -97,7 +145,7 @@ export class InfluenceMaximisationGraph {
                         style: {
                             'line-color': function (ele) {
                                 let lastInfected = InstanceData.findOne().nodesLastInfected;
-                                if (lastInfected.indexOf(ele.source().id()) > 0 || lastInfected.indexOf(ele.target().id()) > 0) {
+                                if (lastInfected.indexOf(ele.source().id()) !== -1 || lastInfected.indexOf(ele.target().id()) !== -1) {
                                     return '#ec0300'
                                 }
                                 return "#eca41a"
@@ -231,9 +279,9 @@ export class InfluenceMaximisationGraph {
 
         if (instanceData) {
             let totalSeeds = instanceData.experiment.seedsRequired;
-            let seedsChosen = instanceData.experiment.seedsChosen;
+            let turnCount = instanceData.experiment.turn;
 
-            return totalSeeds - seedsChosen;
+            return Math.max(totalSeeds - turnCount, 0);
         }
 
         return 0;

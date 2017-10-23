@@ -70,7 +70,6 @@ function initialize_tutorial_1(instance) {
         graphElementsData:graphData,
         experiment:{
             seedsRequired:seedsRequired,
-            seedsChosen:0,
 
             turn:0,
             turnOrder:users,
@@ -108,7 +107,6 @@ function initialize_tutorial_2(instance) {
         graphElementsData:graphData,
         experiment:{
             seedsRequired:seedsRequired,
-            seedsChosen:0,
 
             turn:0,
             turnOrder:users,
@@ -146,7 +144,6 @@ function initialize_tutorial_3(instance) {
         graphElementsData:graphData,
         experiment:{
             seedsRequired:seedsRequired,
-            seedsChosen:0,
 
             turn:0,
             turnOrder:users,
@@ -199,7 +196,6 @@ function initialize_CvsC(instance) {
         graphElementsData:graphData,
         experiment:{
             seedsRequired:seedsRequired,
-            seedsChosen:0,
 
             turn:0,
             turnOrder:users,
@@ -252,7 +248,6 @@ function initialize_experiment(instance) {
         graphElementsData:graphData,
         experiment:{
             seedsRequired:seedsRequired,
-            seedsChosen:0,
 
             turn:0,
             turnOrder:users,
