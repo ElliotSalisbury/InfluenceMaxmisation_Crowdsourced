@@ -209,9 +209,11 @@ export class InfluenceMaximisationGraph {
             this.cy.nodes().on("click", e => this.nodeOnClick(e));
         }
 
-        if(typeof this.animateHandle === "undefined") {
-            this.incEventIndex();
-        }
+        this.eventIndex = 9999;
+        this.cy.style().update();
+        // if(typeof this.animateHandle === "undefined") {
+        //     this.incEventIndex();
+        // }
     }
 
     incEventIndex() {
