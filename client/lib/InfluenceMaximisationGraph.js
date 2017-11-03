@@ -6,6 +6,108 @@ let introJs = require('./intro.js').introJs;
 
 const _singleton = Symbol();
 
+let STYLE_NODE_SELECTED_IM = {
+    'background-image': function (ele) {
+        return "url(\"" + InstanceData.findOne().experiment.turnLogos[ele.data('selectedBy')] + "\")";
+    },
+    'background-fit': 'contain',
+};
+let STYLE_NODE_SELECTED = {
+    'width': "50%",
+    'height': "50%",
+    'background-color': function(ele){
+        if (ele.data('eventIndex') > self.eventIndex) {
+            return '#2a9ee0';
+        }
+        return InstanceData.findOne().experiment.turnColors[ele.data('selectedBy')];
+    },
+    'border-width': "5px",
+    "border-color": "#fbf80a",//function(ele) {
+    //     let instanceData = InstanceData.findOne();
+    //     let lastInfected = instanceData.nodesLastInfected;
+    //
+    //     if (instanceData.experiment.seedsRequired - instanceData.experiment.turn <= 0 && lastInfected.length === 0) {
+    //         //if the game has ended, calculate who won
+    //         let maxSpread = 0;
+    //         let winnerIds = [];
+    //         for(let i=0; i<instanceData.experiment.turnOrder.length; i++) {
+    //             let userId = instanceData.experiment.turnOrder[i];
+    //             let spread = self.spreadOfUser(userId);
+    //             if (spread > maxSpread) {
+    //                 maxSpread = spread;
+    //                 winnerIds = [userId,];
+    //             }else if (spread === maxSpread) {
+    //                 winnerIds.push(userId);
+    //             }
+    //         }
+    //
+    //         //change the winners color
+    //         if (winnerIds.indexOf(ele.data('selectedBy')) !== -1) {
+    //             return "#fbf80a";
+    //         } else {
+    //             return "#969696";
+    //         }
+    //     }else {
+    //         //if the node has no more connections it can make
+    //         let availableConnections = ele.outgoers("node[!selectedBy]");
+    //         if (availableConnections.size() === 0) {
+    //             return "#969696";
+    //         }
+    //
+    //
+    //         let index = lastInfected.indexOf(ele.id());
+    //         if (index === lastInfected.length - 1) {
+    //             //if the node was the last one selected, highlight it
+    //             return '#fbf80a';
+    //         } else if (index !== -1) {
+    //             //if the node could still infect more
+    //             return '#ec0300';
+    //         }
+    //         //this node is inactive now
+    //         return "#000000";
+    //     }
+    // }
+};
+
+let STYLE_NODE_INFECTED = $.extend($.extend({},STYLE_NODE_SELECTED), {
+    "border-color": '#ec0300',
+});
+
+let STYLE_NODE_DISABLED = $.extend($.extend({},STYLE_NODE_SELECTED), {
+    'border-color': "#969696",
+});
+
+let STYLE_EDGE_DEFAULT = {
+    'width': function (ele) {
+        if (ele.data('weight') < self.thick_thresh) {
+            return 2;
+        } else {
+            return 6;
+        }
+    },
+    'line-color': '#eca41a',
+    'line-style': function (ele) {
+        return ele.data('weight') < self.dotted_thresh ? 'dashed' : 'solid';
+    },
+};
+
+let STYLE_EDGE_INFECTED = {
+    'width': 10,
+    'line-color': '#58ec00',
+};
+
+let STYLE_EDGE_ATRISK = {
+    'line-color': '#ec0300',
+};
+
+let STYLE_EDGE_DISABLED = {
+    'line-color': "#969696",
+    'width': 2,
+    'line-style': 'solid'
+};
+
+
+
 export class InfluenceMaximisationGraph {
     constructor(singletonToken, containerId) {
         if(singletonToken !== _singleton) {
@@ -18,9 +120,9 @@ export class InfluenceMaximisationGraph {
         this.thick_thresh = 0.3;
 
 
-
         //animate events as they happen
-        this.eventIndex = -1;
+        this.animateDuration = 1000;
+        this.eventIndex = 0;
 
         this.containerId = containerId;
 
@@ -45,7 +147,6 @@ export class InfluenceMaximisationGraph {
                 return;
             }
 
-            let self = this; //TODO i dont like this, remove it somehow
             this.cycontainer = containerElement;
             this.cy = cytoscape({
                 container: this.cycontainer,
@@ -58,106 +159,9 @@ export class InfluenceMaximisationGraph {
                         }
                     },
                     {
-                        selector: 'node[selectedBy]',
-                        style: {
-                            'background-image': function(ele) {
-                                if (ele.data('eventIndex') > self.eventIndex) {
-                                    return "url(\"\")";
-                                }
-
-                                return "url(\""+InstanceData.findOne().experiment.turnLogos[ele.data('selectedBy')]+"\")";
-                            },
-                            'background-fit': 'contain',
-                            'width': "50%",
-                            'height': "50%",
-                            'background-color': function(ele){
-                                if (ele.data('eventIndex') > self.eventIndex) {
-                                    return '#2a9ee0';
-                                }
-                                return InstanceData.findOne().experiment.turnColors[ele.data('selectedBy')];
-                            },
-                            'border-width': "5px",
-                            "border-color": function(ele) {
-                                let instanceData = InstanceData.findOne();
-                                let lastInfected = instanceData.nodesLastInfected;
-
-                                if (instanceData.experiment.seedsRequired - instanceData.experiment.turn <= 0 && newNodesInfected.length === 0) {
-                                    //if the game has ended, calculate who won
-                                    let maxSpread = 0;
-                                    let winnerIds = [];
-                                    for(let i=0; i<instanceData.experiment.turnOrder.length; i++) {
-                                        let userId = instanceData.experiment.turnOrder[i];
-                                        let spread = self.spreadOfUser(userId);
-                                        if (spread > maxSpread) {
-                                            maxSpread = spread;
-                                            winnerIds = [userId,];
-                                        }else if (spread === maxSpread) {
-                                            winnerIds.push(userId);
-                                        }
-                                    }
-
-                                    //change the winners color
-                                    if (winnerIds.indexOf(ele.data('selectedBy')) !== -1) {
-                                        return "#fbf80a";
-                                    } else {
-                                        return "#969696";
-                                    }
-                                }else {
-                                    //if the node has no more connections it can make
-                                    let availableConnections = ele.outgoers("node[!selectedBy]");
-                                    if (availableConnections.size() === 0) {
-                                        return "#969696";
-                                    }
-
-
-                                    let index = lastInfected.indexOf(ele.id());
-                                    if (index === lastInfected.length - 1) {
-                                        //if the node was the last one selected, highlight it
-                                        return '#fbf80a';
-                                    } else if (index !== -1) {
-                                        //if the node could still infect more
-                                        return '#ec0300';
-                                    }
-                                    //this node is inactive now
-                                    return "#000000";
-                                }
-                            }
-                        }
-                    },
-                    {
                         selector: 'edge',
-                        style: {
-                            'width': function (ele) {
-                                if (ele.data('weight') < self.thick_thresh) {
-                                    return 2;
-                                } else {
-                                    return 6;
-                                }
-                            },
-                            'line-color': '#eca41a',
-                            'line-style': function (ele) {
-                                return ele.data('weight') < self.dotted_thresh ? 'dashed' : 'solid';
-                            },
-                        }
+                        style: STYLE_EDGE_DEFAULT
                     },
-                    {
-                        selector: '[!selectedBy] <-> [selectedBy]',
-                        style: {
-                            'line-color': function (ele) {
-                                let lastInfected = InstanceData.findOne().nodesLastInfected;
-                                if (lastInfected.indexOf(ele.source().id()) !== -1 || lastInfected.indexOf(ele.target().id()) !== -1) {
-                                    return '#ec0300'
-                                }
-                                return "#eca41a"
-                            }
-                        }
-                    },
-                    {
-                        selector: '[selectedBy] <-> [selectedBy]',
-                        style: {
-                            'line-color': "#969696"
-                        }
-                    }
                 ],
 
                 userZoomingEnabled: false,
@@ -208,29 +212,189 @@ export class InfluenceMaximisationGraph {
             this.cy.nodes().removeListener('click');
             this.cy.nodes().on("click", e => this.nodeOnClick(e));
         }
+        this.animateEvents();
+    }
 
-        this.eventIndex = 9999;
+    animateEvents() {
         this.cy.style().update();
-        // if(typeof this.animateHandle === "undefined") {
-        //     this.incEventIndex();
-        // }
-    }
-
-    incEventIndex() {
         let instanceData = InstanceData.findOne();
-        if (this.eventIndex < instanceData.events.length - 1) {
-            this.eventIndex += 1;
-            this.cy.style().update();
 
-            let timing = 100;
-            if(this.eventIndex+1 < instanceData.events.length && instanceData.events[this.eventIndex+1].event === "chosen") {
-                timing = 500;
+        let animQueue = [];
+
+        let currentTurn = instanceData.experiment.turn;
+
+        let events = instanceData.events;
+        let lastInfected = instanceData.nodesLastInfected;
+
+        //for each node and edge in the graph, figure out what it should currently look like.
+        let self = this;
+        let nodes = this.cy.$("node");
+        nodes.forEach(function(node, i, eles) {
+            if(node.data("selectedBy")) {
+                let ei = node.data("eventIndex");
+                let event = events[ei];
+
+                let turnId = event.turn;
+
+                //make the nodes+edges disabled if they've already been animated
+                if (turnId !== currentTurn-1) {
+                    if(turnId < currentTurn) {
+                        if(lastInfected.indexOf(node.id()) !== -1) {
+                            // self._animateNodeInfected(node);
+                        } else {
+                            let hasInfectedOthers = false;
+                            node.outgoers("node").forEach(function(node, i, eles) {
+                                if(node.data("selectedBy")) {
+                                    let ei = node.data("eventIndex");
+                                    let event = events[ei];
+                                    if(event.event === "infected" && event.turn === currentTurn-1) {
+                                        hasInfectedOthers = true;
+                                    }
+                                }
+                            });
+                            if(!hasInfectedOthers) {
+                                animQueue.push(self._animateNodeDisabled("cleanup", node));
+                            }
+                        }
+                    }
+                    return;
+                }
+
+                if (event.event === "selected") {
+                    animQueue.push(self._animateNodeInfected(event.event, node, STYLE_NODE_SELECTED));
+                }
+                else if (event.event === "infected") {
+                    let infectionSource = self.cy.$id(event.infectedById);
+
+                    let infectedEdges = node.edgesWith("#"+event.infectedById);
+                    infectedEdges.forEach(function(edge, i, eles) {
+                        let animTree = {
+                            "type": event.event,
+                            "id": edge.id(),
+                            "animFunc":(delay=0) => {
+                                edge.delay(delay).animate({
+                                    style: STYLE_EDGE_INFECTED,
+                                    duration: self.animateDuration,
+                                    easing: "ease-out-circ",
+                                });
+                            },
+                            "children": [
+                                self._animateNodeInfected(event.event, node),
+                                self._animateNodeDisabled(event.event, infectionSource)
+                            ]};
+
+                        animQueue.push(animTree);
+                    });
+                }
             }
-            this.animateHandle = setTimeout(() => this.incEventIndex(),timing);
-        }else {
-            delete this.animateHandle;
-        }
+        });
+        this._animateTreeDFS(animQueue);
     }
+
+    _animateNodeInfected(type, node, style = STYLE_NODE_INFECTED) {
+        let self=this;
+
+        let animTree = {
+            "type": type,
+            "id":node.id(),
+            "animFunc":(delay=0) => {
+                node.style(STYLE_NODE_SELECTED_IM);
+                node.delay(delay).animate({
+                    style: style,
+                    duration: self.animateDuration,
+                    easing: "ease-out-circ",
+                });
+            },
+            "children": []};
+
+        let edgesDisabled = node.edgesWith("[selectedBy]");
+        edgesDisabled.forEach(function(edge, i, eles) {
+            let treeNode = {
+                "type": type,
+                "id":edge.id(),
+                "animFunc":(delay=0) => {
+                    edge.delay(delay).animate({
+                        style: STYLE_EDGE_DISABLED,
+                        duration: self.animateDuration,
+                        easing: "ease-out-circ",
+                    });
+                },
+                "children": []};
+
+            animTree["children"].push(treeNode);
+        });
+
+        let edgesAtRisk = node.edgesWith("[!selectedBy]");
+        edgesAtRisk.forEach(function(edge, i, eles) {
+            let treeNode = {
+                "type": type,
+                "id":edge.id(),
+                "animFunc":(delay=0) => {
+                    edge.delay(delay).animate({
+                        style: STYLE_EDGE_ATRISK,
+                        duration: self.animateDuration,
+                        easing: "ease-out-circ",
+                    });
+                },
+                "children": []};
+
+            animTree["children"].push(treeNode);
+        });
+
+        return animTree;
+    }
+    _animateNodeDisabled(type, node) {
+        let self = this;
+
+        let animTree = {
+            "type": type,
+            "id":node.id(),
+            "animFunc":(delay=0) => {
+                node.delay(delay).animate({
+                    style: STYLE_NODE_DISABLED,
+                    duration: self.animateDuration,
+                    easing: "ease-out-circ",
+                });
+            },
+            "children": []};
+
+        let edgesDisabled = node.edgesWith("");
+        edgesDisabled.forEach(function(edge, i, eles) {
+            let treeNode = {
+                "type": type,
+                "id":edge.id(),
+                "animFunc":(delay=0) => {
+                    edge.delay(delay).animate({
+                        style: STYLE_EDGE_DISABLED,
+                        duration: self.animateDuration,
+                        easing: "ease-out-circ",
+                    });
+                },
+                "children": []};
+
+            animTree["children"].push(treeNode);
+        });
+
+        return animTree;
+    }
+
+    _animateTreeDFS(animQueue, delay=0) {
+        let ORDER = {
+            "selected":0,
+            "infected":1,
+            "cleanup":2
+        };
+        animQueue = _.sortBy(animQueue, function(o) { return ORDER[o.type]; })
+
+        for(let i=0; i<animQueue.length; i++) {
+            let treeNode = animQueue[i];
+            treeNode.animFunc(delay);
+            delay += 400;
+            delay = this._animateTreeDFS(treeNode.children, delay);
+        }
+        return delay;
+    }
+
 
     nodeOnClick(e) {
         console.log("node clicked", this.ID);
