@@ -220,6 +220,7 @@ export class InfluenceMaximisationGraph {
         let instanceData = InstanceData.findOne();
 
         let animQueue = [];
+        let nodesToDisable = new Set();
 
         let currentTurn = instanceData.experiment.turn;
 
@@ -253,7 +254,8 @@ export class InfluenceMaximisationGraph {
                                 }
                             });
                             if(!hasInfectedOthers) {
-                                animQueue.push(self._animateNodeDisabled("cleanup", node));
+                                nodesToDisable.add(node.id());
+                                // animQueue.push(self._animateNodeDisabled("cleanup", node));
                             }
                         }
                     }
@@ -264,13 +266,36 @@ export class InfluenceMaximisationGraph {
                     animQueue.push(self._animateNodeInfected(event.event, node, STYLE_NODE_SELECTED));
                 }
                 else if (event.event === "infected") {
-                    let infectionSource = self.cy.$id(event.infectedById);
+                    //create an empty treenode to contain this infection event, this node gets animated further down the tree
+                    let animTree = {
+                        "type": event.event,
+                        "id": node.id(),
+                        "infectedById": event.infectedById,
+                        "animFunc":undefined,
+                        "children": [],
+                        };
 
+
+
+                    let infectionSource = self.cy.$id(event.infectedById);
                     let infectedEdges = node.edgesWith("#"+event.infectedById);
                     infectedEdges.forEach(function(edge, i, eles) {
-                        let animTree = {
-                            "type": event.event,
+                        let type = event.event+":EDGE_INFECTED";
+                        let addedBefore = _.find(animTree["children"], (e)=>{
+                            let nids = e.id.substring(1).split("_");
+                            return edge.id() === "e"+nids[1]+"_"+nids[0]
+                        }) !== undefined;
+
+                        let children = [];
+                        if(addedBefore) {
+                            children = [
+                                self._animateNodeInfected(type, node, STYLE_NODE_INFECTED, infectionSource),
+                            ];
+                        }
+                        let treeNode = {
+                            "type": type,
                             "id": edge.id(),
+                            "infectedById": event.infectedById,
                             "animFunc":(delay=0) => {
                                 edge.delay(delay).animate({
                                     style: STYLE_EDGE_INFECTED,
@@ -278,24 +303,30 @@ export class InfluenceMaximisationGraph {
                                     easing: "ease-out-circ",
                                 });
                             },
-                            "children": [
-                                self._animateNodeInfected(event.event, node),
-                                self._animateNodeDisabled(event.event, infectionSource)
-                            ]};
+                            "children": children
+                        };
 
-                        animQueue.push(animTree);
+                        animTree["children"].push(treeNode);
                     });
+                    nodesToDisable.add(infectionSource.id());
+                    animQueue.push(animTree);
                 }
             }
         });
+
+        let graph = this.cy;
+        nodesToDisable.forEach(function(nid) {
+            animQueue.push(self._animateNodeDisabled("cleanup", graph.$id(nid)));
+        });
+
         this._animateTreeDFS(animQueue);
     }
 
-    _animateNodeInfected(type, node, style = STYLE_NODE_INFECTED) {
+    _animateNodeInfected(type, node, style = STYLE_NODE_INFECTED, infectionSource = undefined) {
         let self=this;
 
         let animTree = {
-            "type": type,
+            "type": type+":NODE_INFECTED",
             "id":node.id(),
             "animFunc":(delay=0) => {
                 node.style(STYLE_NODE_SELECTED_IM);
@@ -309,8 +340,12 @@ export class InfluenceMaximisationGraph {
 
         let edgesDisabled = node.edgesWith("[selectedBy]");
         edgesDisabled.forEach(function(edge, i, eles) {
+            if (infectionSource && (edge.source().id() === infectionSource.id() || edge.target().id() === infectionSource.id())) {
+                return;
+            }
+
             let treeNode = {
-                "type": type,
+                "type": type+":EDGE_DISABLED",
                 "id":edge.id(),
                 "animFunc":(delay=0) => {
                     edge.delay(delay).animate({
@@ -327,7 +362,7 @@ export class InfluenceMaximisationGraph {
         let edgesAtRisk = node.edgesWith("[!selectedBy]");
         edgesAtRisk.forEach(function(edge, i, eles) {
             let treeNode = {
-                "type": type,
+                "type": type+":EDGE_ATRISK",
                 "id":edge.id(),
                 "animFunc":(delay=0) => {
                     edge.delay(delay).animate({
@@ -347,7 +382,7 @@ export class InfluenceMaximisationGraph {
         let self = this;
 
         let animTree = {
-            "type": type,
+            "type": type+":NODE_DISABLED",
             "id":node.id(),
             "animFunc":(delay=0) => {
                 node.delay(delay).animate({
@@ -361,7 +396,7 @@ export class InfluenceMaximisationGraph {
         let edgesDisabled = node.edgesWith("");
         edgesDisabled.forEach(function(edge, i, eles) {
             let treeNode = {
-                "type": type,
+                "type": type+":EDGE_DISABLED",
                 "id":edge.id(),
                 "animFunc":(delay=0) => {
                     edge.delay(delay).animate({
@@ -379,20 +414,148 @@ export class InfluenceMaximisationGraph {
     }
 
     _animateTreeDFS(animQueue, delay=0) {
+        animQueue = this._flattenTreeDFS(animQueue);
+
+        let timeline = {};
+
+        let inInfectionMode = false;
+        let lastId = "";
+        for(let i=0; i<animQueue.length; i++) {
+            let treeNode = animQueue[i];
+            if (!treeNode.animFunc) {
+                continue;
+            }
+
+            let types = treeNode.type.split(":");
+            let root_type = types[0];
+
+            if (i !== 0 && root_type === "selected" && types[1] === "NODE_INFECTED") {
+                delay += this.animateDuration*3;
+            }else if (root_type === "infected" && !inInfectionMode) {
+                inInfectionMode = true;
+
+                // this.cy.$("core").animate({
+                //     style: {'active-bg-color-color':"#afb2b1"},
+                //     duration: 100,
+                //     easing: "ease-out-circ",
+                // });
+
+                if(i !== 0) {
+                    delay += this.animateDuration*3;
+                }
+            }
+
+            if(treeNode.id.startsWith("e")) {
+                let nids = treeNode.id.substring(1).split("_");
+                let nid = "e"+nids[1]+"_"+nids[0];
+                if (nid === lastId) {
+                    delay -= this.animateDuration;
+                }
+            }
+
+
+            if(!(treeNode.id in timeline)) {
+                timeline[treeNode.id] = [{
+                    time:delay,
+                    treeNode:treeNode
+                },];
+            }else {
+                timeline[treeNode.id].push({
+                    time:delay,
+                    treeNode:treeNode
+                });
+            }
+            // treeNode.animFunc(delay);
+            delay += this.animateDuration;
+            lastId = treeNode.id;
+        }
+
+        //use the timeline to calculate the correct delay to add to the nodes animation
+        for(let id in timeline) {
+            let animTimes = timeline[id];
+
+            let lastTime = 0;
+            for (let i=0; i<animTimes.length; i++) {
+                let animTime = animTimes[i];
+                let newDelay = animTime.time - lastTime;
+                newDelay = Math.max(newDelay - this.animateDuration, 0);
+                animTime.treeNode.animFunc(newDelay);
+                lastTime = animTime.time;
+            }
+            let newDelay = delay - lastTime;
+            this.cy.$id(id).delay(newDelay);
+        }
+
+        let allElements = this.cy.elements();
+        allElements.forEach(function(e) {
+            if (!(e.id() in timeline)) {
+                e.delay(delay);
+            }
+        });
+
+
+        // this.cy.animate({
+        //     style: {'background-color':"#FFFFFF"},
+        //     duration: self.animateDuration,
+        //     easing: "ease-out-circ",
+        // });
+        return delay;
+    }
+
+    _flattenTreeDFS(animQueue) {
         let ORDER = {
             "selected":0,
             "infected":1,
             "cleanup":2
         };
-        animQueue = _.sortBy(animQueue, function(o) { return ORDER[o.type]; })
+
+        sortFunc = function(o) {
+            let types = o.type.split(":");
+            let root_type = types[0];
+
+            let event_type = types[types.length-1];
+            let isEdge = event_type.split("_")[0] === "EDGE";
+
+            if (isEdge) {
+                let id = o.id;
+                let n0 = id.split("_")[0].substring(2);
+                let n1 = id.split("_")[1].substring(1);
+                let newnum = parseInt(n0+n1);
+                if(parseInt(n0) > parseInt(n1)) {
+                    newnum = parseInt(n1+n0);
+                }
+                return newnum;
+            }
+            return ORDER[root_type];
+        };
+
+        animQueue = _.sortBy(animQueue, sortFunc);
+
+        let nodes = [];
 
         for(let i=0; i<animQueue.length; i++) {
-            let treeNode = animQueue[i];
-            treeNode.animFunc(delay);
-            delay += 400;
-            delay = this._animateTreeDFS(treeNode.children, delay);
+            let rootNode = animQueue[i];
+            nodes.push(rootNode);
+
+            let childStack = [];
+            if (rootNode.children) {
+                childStack.push.apply(childStack, rootNode.children);
+            }
+
+            while (childStack.length > 0) {
+                let childNode = childStack.shift();
+                nodes.push(childNode);
+
+                let children = childNode.children;
+                if (children.length > 0) {
+                    //let sortedChildren = _.sortBy(childNode.children, sortFunc);
+
+                    childStack.unshift.apply(childStack, childNode.children);
+                }
+            }
         }
-        return delay;
+
+        return nodes;
     }
 
 
