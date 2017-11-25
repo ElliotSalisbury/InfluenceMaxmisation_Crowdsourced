@@ -1,4 +1,4 @@
-var cytoscape = require('cytoscape');
+let cytoscape = require('cytoscape');
 
 class AbstractGenerator {
     constructor(size, lower, upper) {
@@ -11,7 +11,7 @@ class AbstractGenerator {
         let cy = cytoscape({});
 
         //create the nodes in the graph
-        for (var i = 0; i < this.size; i++) {
+        for (let i = 0; i < this.size; i++) {
             cy.add({
                 group:"nodes",
                 data: {id: "n"+i}
@@ -68,40 +68,40 @@ export class BarabasiAlbertGenerator extends AbstractGenerator {
     }
 
     generate() {
-        var cy = this.createInitialGraph();
+        let cy = this.createInitialGraph();
 
         //link up the initial nodes
-        for (var i = 0; i < this.initialSize; i++) {
-            for (var j = i+1; j < this.initialSize; j++) {
-                var nodeI = cy.$id("n"+i);
-                var nodeJ = cy.$id("n"+j);
+        for (let i = 0; i < this.initialSize; i++) {
+            for (let j = i+1; j < this.initialSize; j++) {
+                let nodeI = cy.$id("n"+i);
+                let nodeJ = cy.$id("n"+j);
 
-                var weight = this.getWeight();
+                let weight = this.getWeight();
                 this.addInOutNeightbour(cy, nodeI, nodeJ, weight);
             }
         }
 
         // Adding stepSize number of edges to the rest of the nodes
-        for (var i = this.initialSize; i < this.size; i++) {
-            var nodeI = cy.$id("n"+i);
+        for (let i = this.initialSize; i < this.size; i++) {
+            let nodeI = cy.$id("n"+i);
 
-            var sum = 0;  // sum of all nodes degrees
-            for (var j = 0; j < i; j++) {
-                var nodeJ = cy.$id("n"+j);
+            let sum = 0;  // sum of all nodes degrees
+            for (let j = 0; j < i; j++) {
+                let nodeJ = cy.$id("n"+j);
                 sum += nodeJ.degree();
             }
 
-            var s = 0;
-            for (var step = 0; step < this.stepSize; step++) {
-                r = Math.random();
-                p = 0;
-                for (var j = 0; j < i; j++) {
-                    var nodeJ = cy.$id("n"+j);
+            let s = 0;
+            for (let step = 0; step < this.stepSize; step++) {
+                let r = Math.random();
+                let p = 0;
+                for (let j = 0; j < i; j++) {
+                    let nodeJ = cy.$id("n"+j);
 
                     if (nodeI.outgoers().contains(nodeJ)) {
                         continue;
                     }
-                    if (i == 1) {
+                    if (i === 1) {
                         p = 1;
                     } else {
                         p += nodeJ.degree() / sum + s / (i - step);
@@ -110,7 +110,7 @@ export class BarabasiAlbertGenerator extends AbstractGenerator {
                     if (r <= p) {
                         s += nodeJ.degree() / sum;
 
-                        var weight = this.getWeight();
+                        let weight = this.getWeight();
                         this.addInOutNeightbour(cy, nodeI, nodeJ, weight);
                         break;
                     }

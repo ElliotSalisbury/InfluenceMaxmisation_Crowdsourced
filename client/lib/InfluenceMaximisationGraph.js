@@ -162,6 +162,10 @@ export class InfluenceMaximisationGraph {
                         selector: 'edge',
                         style: STYLE_EDGE_DEFAULT
                     },
+                    {
+                        selector: '.withIm',
+                        style: STYLE_NODE_SELECTED_IM
+                    }
                 ],
 
                 userZoomingEnabled: false,
@@ -216,7 +220,6 @@ export class InfluenceMaximisationGraph {
     }
 
     animateEvents() {
-        this.cy.style().update();
         let instanceData = InstanceData.findOne();
 
         let animQueue = [];
@@ -296,11 +299,12 @@ export class InfluenceMaximisationGraph {
                             "type": type,
                             "id": edge.id(),
                             "infectedById": event.infectedById,
-                            "animFunc":(delay=0) => {
+                            "animFunc":(delay=0, completed) => {
                                 edge.delay(delay).animate({
                                     style: STYLE_EDGE_INFECTED,
                                     duration: self.animateDuration,
                                     easing: "ease-out-circ",
+                                    complete: completed
                                 });
                             },
                             "children": children
@@ -328,30 +332,33 @@ export class InfluenceMaximisationGraph {
         let animTree = {
             "type": type+":NODE_INFECTED",
             "id":node.id(),
-            "animFunc":(delay=0) => {
-                node.style(STYLE_NODE_SELECTED_IM);
-                node.delay(delay).animate({
+            "animFunc":(delay=0, completed) => {
+                node.delay(delay, () => {
+                    node.addClass("withIm");
+                }).animate({
                     style: style,
                     duration: self.animateDuration,
                     easing: "ease-out-circ",
+                    complete: completed
                 });
             },
             "children": []};
 
-        let edgesDisabled = node.edgesWith("[selectedBy]");
+        let disabledSelector = "[selectedBy][infectedBy != '"+node.id()+"']";
+        if (infectionSource) {
+            disabledSelector += "[id != '"+infectionSource.id()+"']";
+        }
+        let edgesDisabled = node.edgesWith(disabledSelector);
         edgesDisabled.forEach(function(edge, i, eles) {
-            if (infectionSource && (edge.source().id() === infectionSource.id() || edge.target().id() === infectionSource.id())) {
-                return;
-            }
-
             let treeNode = {
                 "type": type+":EDGE_DISABLED",
                 "id":edge.id(),
-                "animFunc":(delay=0) => {
+                "animFunc":(delay=0, completed) => {
                     edge.delay(delay).animate({
                         style: STYLE_EDGE_DISABLED,
                         duration: self.animateDuration,
                         easing: "ease-out-circ",
+                        complete: completed
                     });
                 },
                 "children": []};
@@ -359,16 +366,18 @@ export class InfluenceMaximisationGraph {
             animTree["children"].push(treeNode);
         });
 
-        let edgesAtRisk = node.edgesWith("[!selectedBy]");
+        let atRiskSelector = "[!selectedBy],[infectedBy = '"+node.id()+"']";
+        let edgesAtRisk = node.edgesWith(atRiskSelector);
         edgesAtRisk.forEach(function(edge, i, eles) {
             let treeNode = {
                 "type": type+":EDGE_ATRISK",
                 "id":edge.id(),
-                "animFunc":(delay=0) => {
+                "animFunc":(delay=0, completed) => {
                     edge.delay(delay).animate({
                         style: STYLE_EDGE_ATRISK,
                         duration: self.animateDuration,
                         easing: "ease-out-circ",
+                        complete: completed
                     });
                 },
                 "children": []};
@@ -384,11 +393,12 @@ export class InfluenceMaximisationGraph {
         let animTree = {
             "type": type+":NODE_DISABLED",
             "id":node.id(),
-            "animFunc":(delay=0) => {
+            "animFunc":(delay=0, completed) => {
                 node.delay(delay).animate({
                     style: STYLE_NODE_DISABLED,
                     duration: self.animateDuration,
                     easing: "ease-out-circ",
+                    complete: completed
                 });
             },
             "children": []};
@@ -398,11 +408,12 @@ export class InfluenceMaximisationGraph {
             let treeNode = {
                 "type": type+":EDGE_DISABLED",
                 "id":edge.id(),
-                "animFunc":(delay=0) => {
+                "animFunc":(delay=0, completed) => {
                     edge.delay(delay).animate({
                         style: STYLE_EDGE_DISABLED,
                         duration: self.animateDuration,
                         easing: "ease-out-circ",
+                        complete: completed
                     });
                 },
                 "children": []};
@@ -413,13 +424,14 @@ export class InfluenceMaximisationGraph {
         return animTree;
     }
 
-    _animateTreeDFS(animQueue, delay=0) {
+    _animateTreeDFS(animQueue) {
         animQueue = this._flattenTreeDFS(animQueue);
 
+        let delay = 0;
         let timeline = {};
-
         let inInfectionMode = false;
         let lastId = "";
+
         for(let i=0; i<animQueue.length; i++) {
             let treeNode = animQueue[i];
             if (!treeNode.animFunc) {
@@ -430,45 +442,51 @@ export class InfluenceMaximisationGraph {
             let root_type = types[0];
 
             if (i !== 0 && root_type === "selected" && types[1] === "NODE_INFECTED") {
-                delay += this.animateDuration*3;
+                delay += this.animateDuration+500;
             }else if (root_type === "infected" && !inInfectionMode) {
                 inInfectionMode = true;
 
-                // this.cy.$("core").animate({
-                //     style: {'active-bg-color-color':"#afb2b1"},
-                //     duration: 100,
-                //     easing: "ease-out-circ",
-                // });
-
                 if(i !== 0) {
                     delay += this.animateDuration*3;
+                    timeline[lastId][timeline[lastId].length-1].completed = () => {
+                        $("#cy").css("backgroundColor","#c5dfcb");
+                    };
                 }
+
+            }else if (root_type === "infected" && types[1] === "NODE_INFECTED") {
+                delay += this.animateDuration;
+            }
+
+            if(!(treeNode.id in timeline)) {
+                timeline[treeNode.id] = [{
+                    time:delay,
+                    treeNode:treeNode,
+                    completed:undefined,
+                },];
+            }else {
+                timeline[treeNode.id].push({
+                    time:delay,
+                    treeNode:treeNode,
+                    completed:undefined,
+                });
             }
 
             if(treeNode.id.startsWith("e")) {
                 let nids = treeNode.id.substring(1).split("_");
                 let nid = "e"+nids[1]+"_"+nids[0];
                 if (nid === lastId) {
-                    delay -= this.animateDuration;
+                    // delay -= this.animateDuration;
                 }
+                delay += 0;
+            }else{
+                delay += this.animateDuration;
             }
-
-
-            if(!(treeNode.id in timeline)) {
-                timeline[treeNode.id] = [{
-                    time:delay,
-                    treeNode:treeNode
-                },];
-            }else {
-                timeline[treeNode.id].push({
-                    time:delay,
-                    treeNode:treeNode
-                });
-            }
-            // treeNode.animFunc(delay);
-            delay += this.animateDuration;
             lastId = treeNode.id;
         }
+
+        timeline[lastId][timeline[lastId].length-1].completed = () => {
+            $("#cy").css("backgroundColor","#FFF");
+        };
 
         //use the timeline to calculate the correct delay to add to the nodes animation
         for(let id in timeline) {
@@ -479,7 +497,7 @@ export class InfluenceMaximisationGraph {
                 let animTime = animTimes[i];
                 let newDelay = animTime.time - lastTime;
                 newDelay = Math.max(newDelay - this.animateDuration, 0);
-                animTime.treeNode.animFunc(newDelay);
+                animTime.treeNode.animFunc(newDelay, animTime.completed);
                 lastTime = animTime.time;
             }
             let newDelay = delay - lastTime;
@@ -512,20 +530,6 @@ export class InfluenceMaximisationGraph {
         sortFunc = function(o) {
             let types = o.type.split(":");
             let root_type = types[0];
-
-            let event_type = types[types.length-1];
-            let isEdge = event_type.split("_")[0] === "EDGE";
-
-            if (isEdge) {
-                let id = o.id;
-                let n0 = id.split("_")[0].substring(2);
-                let n1 = id.split("_")[1].substring(1);
-                let newnum = parseInt(n0+n1);
-                if(parseInt(n0) > parseInt(n1)) {
-                    newnum = parseInt(n1+n0);
-                }
-                return newnum;
-            }
             return ORDER[root_type];
         };
 
