@@ -430,7 +430,7 @@ export class InfluenceMaximisationGraph {
         let delay = 0;
         let timeline = {};
         let inInfectionMode = false;
-        let lastId = "";
+        let lastId = undefined;
 
         for(let i=0; i<animQueue.length; i++) {
             let treeNode = animQueue[i];
@@ -443,15 +443,21 @@ export class InfluenceMaximisationGraph {
 
             if (i !== 0 && root_type === "selected" && types[1] === "NODE_INFECTED") {
                 delay += this.animateDuration+500;
-            }else if (root_type === "infected" && !inInfectionMode) {
+            }else if (!inInfectionMode && (root_type === "infected")) {
                 inInfectionMode = true;
 
+                let infectionFunc = () => {
+                    $("#mode_indicator").text("Infection Phase");
+                    $("#cy").css("backgroundColor","#c5dfcb");
+                };
                 if(i !== 0) {
-                    delay += this.animateDuration*3;
-                    timeline[lastId][timeline[lastId].length-1].completed = () => {
-                        $("#cy").css("backgroundColor","#c5dfcb");
-                    };
+                    delay += this.animateDuration * 3;
+
+                    timeline[lastId][timeline[lastId].length-1].completed = infectionFunc;
+                }else{
+                    // infectionFunc();
                 }
+
 
             }else if (root_type === "infected" && types[1] === "NODE_INFECTED") {
                 delay += this.animateDuration;
@@ -484,39 +490,36 @@ export class InfluenceMaximisationGraph {
             lastId = treeNode.id;
         }
 
-        timeline[lastId][timeline[lastId].length-1].completed = () => {
-            $("#cy").css("backgroundColor","#FFF");
-        };
-
-        //use the timeline to calculate the correct delay to add to the nodes animation
-        for(let id in timeline) {
-            let animTimes = timeline[id];
-
-            let lastTime = 0;
-            for (let i=0; i<animTimes.length; i++) {
-                let animTime = animTimes[i];
-                let newDelay = animTime.time - lastTime;
-                newDelay = Math.max(newDelay - this.animateDuration, 0);
-                animTime.treeNode.animFunc(newDelay, animTime.completed);
-                lastTime = animTime.time;
-            }
-            let newDelay = delay - lastTime;
-            this.cy.$id(id).delay(newDelay);
+        if (lastId && lastId in timeline) {
+            timeline[lastId][timeline[lastId].length - 1].completed = () => {
+                $("#mode_indicator").text("Selection Phase");
+                $("#cy").css("backgroundColor", "#FFF");
+            };
         }
 
+        //use the timeline to calculate the correct delay to add to the nodes animation
+        let self = this;
         let allElements = this.cy.elements();
         allElements.forEach(function(e) {
-            if (!(e.id() in timeline)) {
-                e.delay(delay);
+            let lastTime = 0;
+
+            if (e.id() in timeline) {
+                let animTimes = timeline[e.id()];
+                for (let i=0; i<animTimes.length; i++) {
+                    let animTime = animTimes[i];
+
+                    let newDelay = animTime.time - lastTime;
+                    newDelay = Math.max(newDelay - self.animateDuration, 0);
+
+                    animTime.treeNode.animFunc(newDelay, animTime.completed);
+                    lastTime = animTime.time;
+                }
             }
+
+            let newDelay = delay - lastTime;
+            e.delay(newDelay);
         });
 
-
-        // this.cy.animate({
-        //     style: {'background-color':"#FFFFFF"},
-        //     duration: self.animateDuration,
-        //     easing: "ease-out-circ",
-        // });
         return delay;
     }
 
